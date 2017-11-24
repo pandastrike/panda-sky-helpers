@@ -1,0 +1,51 @@
+{
+  "name": "panda-sky-helpers",
+  "version": "0.0.1",
+  "description": "A lightweight library to make authoring serverless, Panda Sky powered APIs easier.",
+  "main": "./lib/index.js",
+  "scripts": {
+    "prepare": "node_modules/.bin/coffee --compile --transpile --output lib/ src/",
+    "postpublish": "(json -f package.json version | xargs -I version git tag -am version version) && git push --tags",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pandastrike/panda-sky-helpers.git"
+  },
+  "keywords": [
+    "serverless",
+    "lambda",
+    "aws",
+    "panda-sky",
+    "s3",
+    "api",
+    "http"
+  ],
+  "contributors": [
+    {
+      "name": "David Harper",
+      "email": "real.david.harper@gmail.com",
+      "url": "https://www.freeformflow.com"
+    },
+    {
+      "name": "Dan Yoder",
+      "email": "dan@pandastrike.com",
+      "url": "https://www.pandastrike.com"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pandastrike/panda-sky-helpers/issues"
+  },
+  "homepage": "https://github.com/pandastrike/panda-sky-helpers#readme",
+  "devDependencies": {
+    "babel-core": "6.26.0",
+    "babel-preset-env": "1.6.1",
+    "coffeescript": "2.0.2"
+  },
+  "dependencies": {
+    "auth-header": "0.3.1",
+    "fairmont-helpers": "2.0.1",
+    "standard-error": "1.1.0"
+  }
+}
