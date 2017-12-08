@@ -1,6 +1,6 @@
 {
   "name": "panda-sky-helpers",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A lightweight library to make authoring serverless, Panda Sky powered APIs easier.",
   "main": "./lib/index.js",
   "files": [
@@ -8,7 +8,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "prepare": "node_modules/.bin/coffee --compile --transpile --output lib/ src/",
+    "prepare": "node_modules/.bin/coffee --compile --transpile --inline-map --output lib/ src/",
     "postpublish": "(json -f package.json version | xargs -I version git tag -am version version) && git push --tags",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -50,6 +50,7 @@
   "dependencies": {
     "auth-header": "0.3.1",
     "fairmont-helpers": "2.0.1",
+    "source-map-support": "^0.5.0",
     "standard-error": "1.1.0"
   }
 }

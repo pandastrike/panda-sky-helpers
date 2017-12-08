@@ -13,6 +13,7 @@ dispatch = (handlers) ->
     try
       callback null, (await handler request, context)
     catch e
-      callback e
+      console.error "Error in #{context.functionName}: ", e.stack
+      callback e.message || "There was an error."
 
 export default dispatch

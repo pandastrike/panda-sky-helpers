@@ -1,3 +1,6 @@
+# Before we get started, first install source mapping support.
+import "source-map-support/register"
+
 # The library root accepts an instanciated AWS SDK when invoked.  This gives the
 # helpers the same access as the invoking Lambda.
 
