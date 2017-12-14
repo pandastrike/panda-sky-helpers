@@ -2,25 +2,26 @@
 import "source-map-support/register"
 
 # The library root accepts an instanciated AWS SDK when invoked.  This gives the
-# helpers the same access as the invoking Lambda.
+# helpers the same access as the invoking Lambda.  We then pass that off to our
+# functional wrapper library SunDog to access a really powerful interface.
 
-# For example,
-# when accessing S3, the library can only access buckets to which the inovking
-# Lamdba could access with its own AWS SDK that is natively loaded into the
-# runtime.
 import env from "./env"
 import dispatch from "./dispatch"
 import method from "./method"
 import response from "./responses"
-import s3 from "./s3"
+import Sundog from "sundog"
 
-sky = (AWS) ->
+sky = (_AWS_) ->
+  {_AWS: liftedAWS, AWS, Helpers: SundogHelpers} = Sundog _AWS_
+
   {
     env
     response
     method
     dispatch
-    s3: s3 AWS
+    liftedAWS
+    AWS
+    SundogHelpers
   }
 
 export default sky

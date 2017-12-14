@@ -1,4 +1,4 @@
-import {parse} from "auth-header"
+import {parse} from "panda-auth-header"
 
 method = (handler) ->
   # TODO: parse Accept header
