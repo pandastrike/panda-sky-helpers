@@ -9,19 +9,20 @@ import env from "./env"
 import dispatch from "./dispatch"
 import method from "./method"
 import response from "./responses"
-import Sundog from "sundog"
+import Sundog from "./sundog"
 
-sky = (_AWS_) ->
-  {_AWS: liftedAWS, AWS, Helpers: SundogHelpers} = Sundog _AWS_
+sky = (_AWS) ->
+  if _AWS
+    AWS = Sundog _AWS
+  else
+    AWS = Sundog
 
   {
     env
     response
     method
     dispatch
-    liftedAWS
     AWS
-    SundogHelpers
   }
 
 export default sky
