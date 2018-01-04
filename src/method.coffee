@@ -4,7 +4,7 @@ method = (handler) ->
   # TODO: parse Accept header
   # TODO: logging instrumentation
   (request, context) ->
-    if (header = request.headers['Authorization'])?
+    if (header = request.headers?['Authorization'])?
       {scheme, params, token} = parse header
       if token
         request.authorization = {scheme, token}
