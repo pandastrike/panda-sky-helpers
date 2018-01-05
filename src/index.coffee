@@ -9,20 +9,23 @@ import env from "./env"
 import dispatch from "./dispatch"
 import method from "./method"
 import response from "./responses"
-import Sundog from "./sundog"
+import Sundog from "sundog"
 
-sky = (_AWS) ->
-  if _AWS
-    AWS = Sundog _AWS
-  else
-    AWS = Sundog
+aws = (sdk) -> Sundog(sdk).AWS
 
-  {
-    env
-    response
-    method
-    dispatch
-    AWS
-  }
+sky = {
+  env
+  response
+  method
+  dispatch
+  aws
+}
 
 export default sky
+export {
+  env
+  response
+  method
+  dispatch
+  aws
+}

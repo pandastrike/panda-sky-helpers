@@ -1,6 +1,6 @@
 {
   "name": "panda-sky-helpers",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A lightweight library to make authoring serverless, Panda Sky powered APIs easier.",
   "main": "./lib/index.js",
   "files": [
@@ -52,6 +52,6 @@
     "panda-auth-header": "0.0.1",
     "source-map-support": "^0.5.0",
     "standard-error": "1.1.0",
-    "sundog": "0.0.3"
+    "sundog": "0.0.4"
   }
 }
