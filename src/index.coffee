@@ -8,6 +8,7 @@ import "source-map-support/register"
 import env from "./env"
 import dispatch from "./dispatch"
 import method from "./method"
+import log from "./logger"
 import response from "./responses"
 import Sundog from "sundog"
 
@@ -18,6 +19,7 @@ sky = {
   response
   method
   dispatch
+  log
   aws
 }
 
@@ -27,5 +29,6 @@ export {
   response
   method
   dispatch
+  log
   aws
 }
