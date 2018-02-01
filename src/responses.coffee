@@ -3,11 +3,13 @@
 # statuses in an error package, givng end users the ability to select a response
 # overriding the default for a Lambda / Gateway handler.
 
+# The error tag is a target that's easy to hit with Gateway's regex hook on error reponses.  That allows it to dispatch the correct status code.
+
 import StandardError from "standard-error"
 
-create = (name, message, code) ->
-  errorConstructor = (reason) ->
-    StandardError.call(this, message, {reason: reason, code: code})
+create = (name, tag, code) ->
+  errorConstructor = (message) ->
+    StandardError.call(this, message, {tag, code})
 
   errorConstructor.prototype = Object.create StandardError.prototype,
     {constructor: {value: errorConstructor, configurable: true, writable: true}}

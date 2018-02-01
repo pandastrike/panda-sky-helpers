@@ -14,15 +14,11 @@ dispatch = (handlers) ->
     new Promise (resolve, reject) ->
       resolve handler request, context
     .then (result) -> callback null, result
-    .catch (e) ->
-      logger.error "Error in #{context.functionName}: ", e.stack
-      msg =
-        if e.reason
-          e.reason
-        else if e.message
-          e.message
-        else
-          "There was an error."
+    .catch ({stack, tag="internal server error", reason="", message=""}) ->
+      logger.error "Error in #{context.functionName}: ", stack
+      msg = "<#{tag}>"
+      msg += " #{reason}" if reason != ""
+      msg += " #{message}" if message != ""
       callback msg
 
 export default dispatch
