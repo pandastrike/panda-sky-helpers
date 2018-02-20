@@ -8,8 +8,8 @@ dispatch = (handlers) ->
     logger.debug "Dispatching to '#{context.functionName}' handler"
     handler = handlers[context.functionName]
     unless typeof handler == 'function'
-      logger.error "Failed to execute: " + context.functionName
-      return callback new response.Internal()
+      logger.error context.functionName + "Is not a function"
+      return callback "<internal server error>"
 
     new Promise (resolve, reject) ->
       resolve handler request, context

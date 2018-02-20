@@ -24,8 +24,8 @@ dispatch = function (handlers) {
     _logger2.default.debug(`Dispatching to '${context.functionName}' handler`);
     handler = handlers[context.functionName];
     if (typeof handler !== 'function') {
-      _logger2.default.error("Failed to execute: " + context.functionName);
-      return callback(new _responses2.default.Internal());
+      _logger2.default.error(context.functionName + "Is not a function");
+      return callback("<internal server error>");
     }
     return new Promise(function (resolve, reject) {
       return resolve(handler(request, context));
