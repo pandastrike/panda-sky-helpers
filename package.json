@@ -1,10 +1,11 @@
 {
   "name": "panda-sky-helpers",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "A lightweight library to make authoring serverless, Panda Sky powered APIs easier.",
-  "main": "build/npm/lib/index.js",
+  "main": "build/npm/src/index.js",
   "files": [
-    "build/npm"
+    "build/npm/src",
+    "LICENSE"
   ],
   "scripts": {},
   "repository": {
@@ -39,13 +40,13 @@
   "homepage": "https://github.com/pandastrike/panda-sky-helpers#readme",
   "devDependencies": {
     "coffeescript": "2.1.0",
-    "fairmont-build-tools": "1.0.2",
-    "gulp": "github:gulpjs/gulp#4.0"
+    "gulp": "github:gulpjs/gulp#4.0",
+    "panda-builder": "^1.1.1"
   },
   "dependencies": {
     "panda-auth-header": "0.0.1",
     "source-map-support": "^0.5.0",
     "standard-error": "1.1.0",
-    "sundog": "0.0.6"
+    "sundog": "<0.1.0"
   }
 }
