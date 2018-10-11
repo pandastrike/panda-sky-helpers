@@ -11,10 +11,10 @@ dispatch = (handlers) ->
       logger.error context.functionName + "Is not a function"
       return callback "<internal server error>"
 
-    new Promise (resolve, reject) ->
-      resolve handler request, context
-    .then (result) -> callback null, result
-    .catch ({stack, tag="internal server error", reason="", message=""}) ->
+    try
+      callback null, (await handler request, context)
+    catch e
+      {stack, tag="internal server error", reason="", message=""} = e
       logger.error "Error in #{context.functionName}: ", stack
       msg = "<#{tag}>"
       msg += " #{reason}" if reason != ""
