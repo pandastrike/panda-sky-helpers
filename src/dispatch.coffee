@@ -15,10 +15,14 @@ dispatch = (handlers) ->
       callback null, (await handler request, context)
     catch e
       {stack, tag="internal server error", reason="", message=""} = e
-      logger.error "Error in #{context.functionName}: ", stack
-      msg = "<#{tag}>"
-      msg += " #{reason}" if reason != ""
-      msg += " #{message}" if message != ""
-      callback msg
+      if tag == "not modified"
+        logger.debug "returning 304"
+        return callback "<#{tag}>"
+      else
+        logger.error "Error in #{context.functionName}: ", stack
+        msg = "<#{tag}>"
+        msg += " #{reason}" if reason != ""
+        msg += " #{message}" if message != ""
+        return callback msg
 
 export default dispatch
