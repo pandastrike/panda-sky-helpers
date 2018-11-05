@@ -9,21 +9,31 @@ md5 = (obj) ->
 
 class Cache
   constructor: (request) ->
+    log.debug "Cache Headers:", request.headers
     @timestamp = null
-    @inputTime = request.headers?["if-modified-since"]
+    @inputTime = request.headers?["if-modified-since"] || request.headers?["If-Modified-Since"]
+    @inputETag = request.headers?["if-none-match"] || request.headers?["If-None-Match"]
 
-  check: (timestamp) ->
+  timeCheck: (timestamp) ->
     timestamp = new Date(Number timestamp).toUTCString()
     if timestamp == @inputTime
       throw new NotModified()
     else
       @timestamp = timestamp
 
+  hashCheck: (content) ->
+    etag = md5 content
+    if etag == @inputETag
+      throw new NotModified()
+    else
+      @etag = etag
+    content
+
 method = (signatures, handler) ->
   # TODO: parse Accept header
   (request, context) ->
     if request.source == "cuddle-monkey"
-      log.info "Detected a Cuddle Monkey preheater invocation. Short circuting request cycle."
+      log.debug "Detected a Cuddle Monkey preheater invocation. Short circuting request cycle."
       return true
 
     if (header = request.headers?['Authorization'])?
@@ -34,26 +44,18 @@ method = (signatures, handler) ->
         request.authorization = {scheme, params}
 
     # Process the handler while minding the conditional cache headers.
-    if signatures.response.cache?.lastModified
-      log.debug "incoming headers for Last-Modified", request.headers
-      cache = new Cache request
-      data = await handler request, context, cache
-      console.log cache
-      return
-        data: data
-        metadata: headers: lastModified: cache.timestamp
+    if !signatures.response.cache
+      return data: await handler request, context
 
-    else if signatures.response.cache?.etag
-      log.debug "incoming headers for ETag", request.headers
-      data = await handler request, context
-      etag = md5 data
-      if request.headers?["if-none-match"] == etag
-        throw new NotModified()
-      return
-        data: data
-        metadata: headers: {etag}
+    {lastModified, etag} = signatures.response.cache
+    cache = new Cache request
+    data = await handler request, context, cache
+    metadata = headers: {}
+    if lastModified
+      metadata.headers["Last-Modified"] = cache.timestamp
+    if etag
+      metadata.headers.ETag = cache.etag || md5 data
 
-    else
-      data: await handler request, context
+    return {data, metadata}
 
 export default method

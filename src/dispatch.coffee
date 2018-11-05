@@ -16,7 +16,7 @@ dispatch = (handlers) ->
     catch e
       {stack, tag="internal server error", reason="", message=""} = e
       if tag == "not modified"
-        logger.debug "returning 304"
+        logger.debug "304 reply"
         return callback "<#{tag}>"
       else
         logger.error "Error in #{context.functionName}: ", stack
