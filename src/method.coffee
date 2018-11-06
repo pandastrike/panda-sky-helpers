@@ -29,6 +29,8 @@ class Cache
       @etag = etag
     content
 
+  setMaxAge: (maxAge) -> @maxAge = maxAge
+
 method = (signatures, handler) ->
   # TODO: parse Accept header
   (request, context) ->
@@ -47,10 +49,14 @@ method = (signatures, handler) ->
     if !signatures.response.cache
       return data: await handler request, context
 
-    {lastModified, etag} = signatures.response.cache
+    {maxAge, lastModified, etag} = signatures.response.cache
     cache = new Cache request
     data = await handler request, context, cache
     metadata = headers: {}
+    if maxAge == "manual"
+      metadata.headers["Cache-Control"] = "max-age=#{cache.maxAge}"
+    else
+      metadata.headers["Cache-Control"] = "max-age=#{maxAge}"
     if lastModified
       metadata.headers["Last-Modified"] = cache.timestamp
     if etag
