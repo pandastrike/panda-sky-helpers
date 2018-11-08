@@ -2,7 +2,7 @@ import Crypto from "crypto"
 import {parse} from "panda-auth-header"
 import log from "./logger"
 import responses from "./responses"
-{NotModified} = responses
+{NotModified, UnsupportedMediaType} = responses
 
 md5 = (obj) ->
   Crypto.createHash('md5').update(JSON.stringify(obj), 'utf-8').digest("hex")
@@ -45,14 +45,29 @@ method = (signatures, handler) ->
       else
         request.authorization = {scheme, params}
 
+    request.accept = "application/json"
+    if (header = request.headers?['accept'] || request.headers?['Accept'])?
+      accept = header.split(",")[0]
+      signatures.response.mediatype ?= ["application/json"]
+      if accept == "*/*"
+        request.accept = "applicaton/json"
+      else if accept not in signatures.response.mediatype
+        throw new UnsupportedMediaType accept
+      else
+        request.accept = accept
+
     # Process the handler while minding the conditional cache headers.
     if !signatures.response.cache
-      return data: await handler request, context
+      return
+        data: await handler request, context
+        metadata:
+          headers: "Content-Type": request.accept
 
     {maxAge, lastModified, etag} = signatures.response.cache
     cache = new Cache request
     data = await handler request, context, cache
-    metadata = headers: {}
+    metadata =
+      headers: "Content-Type": request.accept
     if maxAge == "manual"
       metadata.headers["Cache-Control"] = "max-age=#{cache.maxAge}"
     else
