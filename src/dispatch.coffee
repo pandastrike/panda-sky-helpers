@@ -11,8 +11,9 @@ dispatch = (handlers) ->
       logger.error context.functionName + "Is not a function"
       return callback "<internal server error>"
 
+    request.lambdaContext = context
     try
-      callback null, (await handler request, context)
+      callback null, (await handler request).response
     catch e
       {stack, tag="internal server error", reason="", message=""} = e
       if tag == "not modified"

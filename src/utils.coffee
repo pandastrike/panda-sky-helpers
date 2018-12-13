@@ -4,4 +4,8 @@ import Crypto from "crypto"
 md5 = (obj) ->
   Crypto.createHash('md5').update(JSON.stringify(obj), 'utf-8').digest("hex")
 
-export {md5}
+oneShot = ([request, fx...]) ->
+  await f request for f in fx
+  request
+
+export {md5, oneShot}

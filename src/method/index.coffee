@@ -1,29 +1,23 @@
-import {go, map, wait} from "panda-river"
-import {authorization, accept, cache} from "./headers"
+import {authorization, accept, cache, execute, schema} from "./request"
 import {stamp} from "./response"
 import log from "../logger"
-
-execute = (lambda, request) ->
-  data: await handler request, lambda
-  cache: request.cache
-  metadata:
-    headers:
-      "Content-Type": request.accept
+import {oneShot} from "../utils"
 
 method = (signatures, handler) ->
 
-  (request, lambda) ->
+  (request) ->
     if request.source == "cuddle-monkey"
       log.debug "Cuddle Monkey preheater invocation."
       return true
 
-    go [
+    oneShot [
       request
-      map authorization
-      map accept signatures
-      map cache
-      wait map execute lambda
-      map stamp signatures
+      schema signatures
+      accept signatures
+      authorization
+      cache
+      execute handler
+      stamp signatures
     ]
 
 export default method
