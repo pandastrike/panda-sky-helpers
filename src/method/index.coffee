@@ -1,5 +1,5 @@
 import {authorization, accept, cache, execute, schema} from "./request"
-import {stamp} from "./response"
+import {stamp, location} from "./response"
 import log from "../logger"
 import {oneShot} from "../utils"
 
@@ -18,6 +18,7 @@ method = (signatures, handler) ->
       cache
       execute handler
       stamp signatures
+      location
     ]
 
 export default method

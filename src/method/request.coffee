@@ -59,7 +59,6 @@ execute = (handler) ->
   (request) ->
     request.response =
       data: await handler request
-      cache: request.cache
       metadata:
         headers:
           "Content-Type": request.accept
