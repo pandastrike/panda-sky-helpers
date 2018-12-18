@@ -22,4 +22,4 @@ location = ->
     if location
       response.metadata.headers.Location = location
 
-export {stamp}
+export {stamp, location}
