@@ -23,7 +23,10 @@ schema = (signatures) ->
       if !isValid
         log.warn ajv.errors
         out = {}
-        out[error.keyword] = error.params for error in ajv.errors
+        for error in ajv.errors
+          out[error.dataPath] =
+            path: error.schemaPath
+            violations: error.params
         throw new UnprocessableEntity JSON.stringify out
 
 accept = (signatures) ->
