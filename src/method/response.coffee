@@ -17,9 +17,8 @@ stamp = (signatures) ->
     if definition.etag
       response.metadata.headers.ETag = cache?.etag || md5 response.data
 
-location = ->
-  ({response, location}) ->
-    if location
-      response.metadata.headers.Location = location
+location = ({response, location}) ->
+  if location
+    response.metadata.headers.Location = location
 
 export {stamp, location}
