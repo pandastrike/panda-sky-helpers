@@ -46,8 +46,12 @@ accept = (signatures) ->
     request.accept = first matches
 
 authorization = (request) ->
-  header = request.headers?.Authorization || request.headers?.authorization
-  if header?
+  return unless request.headers?
+
+  if request.headers?.Authorization?
+    request.headers.authorization = request.headers.Authorization
+
+  if (header = request.headers.authorization)?
     {scheme, params, token} = parse header
     if token
       request.authorization = {scheme, token}
