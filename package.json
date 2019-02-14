@@ -1,6 +1,6 @@
 {
   "name": "panda-sky-helpers",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "A lightweight library to make authoring serverless, Panda Sky powered APIs easier.",
   "main": "build/npm/src/index.js",
   "files": [
@@ -51,6 +51,6 @@
     "panda-parchment": "^4.2.0",
     "source-map-support": "^0.5.0",
     "standard-error": "1.1.0",
-    "sundog": "^2.0.2"
+    "sundog": "^3.0.8"
   }
 }

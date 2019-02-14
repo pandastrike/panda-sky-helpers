@@ -21,4 +21,8 @@ location = ({response, location}) ->
   if location
     response.metadata.headers.Location = location
 
-export {stamp, location}
+capability = ({response, capability}) ->
+  if capability
+    response.metadata.headers.Capability = capability
+
+export {stamp, location, capability}

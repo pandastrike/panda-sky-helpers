@@ -8,27 +8,6 @@ import responses from "../responses"
 {UnsupportedMediaType, UnprocessableEntity} = responses
 ajv = new AJV()
 
-schema = (signatures) ->
-  (request) ->
-    if (_schema = signatures.request.schema)?
-      _schema = merge
-        $schema: "http://json-schema.org/draft-07/schema#"
-        $id: "http://example.com/product.schema.json"
-        title: "Handler Schema"
-        description: "Schema for the content in the body of this HTTP request."
-        type: "object"
-        , _schema
-
-      isValid = ajv.validate _schema, (request.content || {})
-      if !isValid
-        log.warn ajv.errors
-        out = {}
-        for error in ajv.errors
-          out[error.dataPath] =
-            path: error.schemaPath
-            violations: error.params
-        throw new UnprocessableEntity JSON.stringify out
-
 accept = (signatures) ->
   (request) ->
 
@@ -70,10 +49,36 @@ execute = (handler) ->
         headers:
           "Content-Type": request.accept
 
+# Standard logging for all requests for debugging / anonymous stats.
+metrics = (request) ->
+  log.debug path: request.path
+
+schema = (signatures) ->
+  (request) ->
+    if (_schema = signatures.request.schema)?
+      _schema = merge
+        $schema: "http://json-schema.org/draft-07/schema#"
+        $id: "http://example.com/product.schema.json"
+        title: "Handler Schema"
+        description: "Schema for the content in the body of this HTTP request."
+        type: "object"
+        , _schema
+
+      isValid = ajv.validate _schema, (request.content || {})
+      if !isValid
+        log.warn ajv.errors
+        out = {}
+        for error in ajv.errors
+          out[error.dataPath] =
+            path: error.schemaPath
+            violations: error.params
+        throw new UnprocessableEntity JSON.stringify out
+
 export {
   authorization
   accept
   cache
   execute
+  metrics
   schema
 }
