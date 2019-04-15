@@ -48,7 +48,7 @@ responses =
   Forbidden: create "Forbidden", "forbidden", 403
   NotFound: create "NotFound", "not found", 404
   MethodNotAllowed: create "MethodNotAllowed", "method not allowed", 405
-  MethodNotAcceptable: create "MethodNotAcceptable", "method not acceptable", 406
+  NotAcceptable: create "NotAcceptable", "not acceptable", 406
   ProxyAuthenticationRequired: create "ProxyAuthenticationRequired", "proxy authentication required", 407
   RequestTimeout: create "RequestTimeout", "request timeout", 408
   Conflict: create "Conflict", "conflict", 409

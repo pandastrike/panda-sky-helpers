@@ -1,11 +1,11 @@
 import {parse} from "panda-auth-header"
 import {mediaTypes} from "accept"
 import AJV from "ajv"
-import {intersection, empty, first, merge} from "panda-parchment"
+import {intersection, empty, first, merge, toJSON} from "panda-parchment"
 import log from "../logger"
 import Cache from "./cache"
 import responses from "../responses"
-{UnsupportedMediaType, UnprocessableEntity} = responses
+{UnsupportedMediaType, UnprocessableEntity, NotAcceptable} = responses
 ajv = new AJV()
 
 accept = (signatures) ->
@@ -21,7 +21,7 @@ accept = (signatures) ->
     if empty matches
       if "*/*" in types
         return request.accept = "application/json"
-      throw new UnsupportedMediaType types.join ", "
+      throw new NotAcceptable types.join ", "
     request.accept = first matches
 
 authorization = (request) ->
@@ -55,6 +55,11 @@ metrics = (request) ->
 
 schema = (signatures) ->
   (request) ->
+    type = request.headers?["Content-Type"] || request.headers?["content-type"]
+    allowed = signatures.request.mediatype
+    if allowed && type not in allowed
+      throw new UnsupportedMediaType "content must be type(s) #{toJSON allowed}"
+
     if (_schema = signatures.request.schema)?
       _schema = merge
         $schema: "http://json-schema.org/draft-07/schema#"
@@ -72,7 +77,7 @@ schema = (signatures) ->
           out[error.dataPath] =
             path: error.schemaPath
             violations: error.params
-        throw new UnprocessableEntity JSON.stringify out
+        throw new UnprocessableEntity toJSON out
 
 export {
   authorization
