@@ -11,14 +11,18 @@ class Cache
   timeCheck: (timestamp) ->
     timestamp = new Date(Number timestamp).toUTCString()
     if timestamp == @inputTime
-      throw new NotModified()
+      error = new NotModified()
+      error.metadata = headers: {"Last-Modified": timestamp}
+      throw error
     else
       @timestamp = timestamp
 
   hashCheck: (content) ->
     etag = md5 content
     if etag == @inputETag
-      throw new NotModified()
+      error = new NotModified()
+      error.metadata = headers: {ETag: etag}
+      throw error
     else
       @etag = etag
     content
