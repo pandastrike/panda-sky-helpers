@@ -1,7 +1,7 @@
 import {parse} from "panda-auth-header"
-import {mediaTypes} from "accept"
+import {mediaType, encoding} from "accept"
 import AJV from "ajv"
-import {intersection, empty, first, merge, toJSON} from "panda-parchment"
+import {empty, merge, include, toJSON} from "panda-parchment"
 import log from "../logger"
 import Cache from "./cache"
 import responses from "../responses"
@@ -9,22 +9,27 @@ import responses from "../responses"
 ajv = new AJV()
 
 accept = (signatures) ->
-  (request) ->
+  ({request, response}) ->
+    # Negotiate content type by comparing client and our preferences.
+    preferences = signatures.response.mediatype || ["application/json"]
+    header = request.headers?["accept"] || "*/*"
+    match = mediaType header, preferences
+    if empty match
+      throw new NotAcceptable "the following types are supported: #{toJSON preferences}"
+    else
+      response.type = match
 
-    if !(allowed = signatures.response.mediatype)?
-      request.accept = "application/json"
-      return
+    # Negotiate content encoding by comparing client and our preferences.
+    preferences = ["identity", "gzip"]
+    header = request.headers?["accept-encoding"] || ""
+    match = encoding header, preferences
+    if empty match
+      throw new NotAcceptable "the following encodings are supported: #{toJSON preferences}"
 
-    # array in order of preference, matches maintains that order.
-    types = mediaTypes request.headers?.Accept || request.headers?.accept
-    matches = intersection allowed, types
-    if empty matches
-      if "*/*" in types
-        return request.accept = "application/json"
-      throw new NotAcceptable types.join ", "
-    request.accept = first matches
+    # The Content-Encoding header and relevant compression is set by Gateway
+    # So there is no response field to set here.
 
-authorization = (request) ->
+authorization = ({request}) ->
   return unless request.headers?
 
   if request.headers?.Authorization?
@@ -37,25 +42,32 @@ authorization = (request) ->
     else
       request.authorization = {scheme, params}
 
-cache = (request) ->
-  request.cache = new Cache request
+cache = (signatures) ->
+  ({request}) ->
+    request.cache = new Cache signatures, request
 
 # Re-assign the request object to become the response.
 execute = (handler) ->
-  (request) ->
-    request.response =
-      data: await handler request
+  ({request, response}) ->
+    include response,
+      data: await handler request, response
+    include response,
       metadata:
-        headers:
-          "Content-Type": request.accept
+        headers: "Content-Type": response.type
 
 # Standard logging for all requests for debugging / anonymous stats.
-metrics = (request) ->
-  log.debug path: request.path
+metrics = ({request, response}) ->
+  log.debug
+    path: request.path
+    headers:
+      accept: request.headers.accept
+      "accept-encoding": request.headers["accept-encoding"]
+      "accept-language": request.headers["accept-language"]
+      "user-agent": request.headers["user-agent"]
 
 schema = (signatures) ->
-  (request) ->
-    type = request.headers?["Content-Type"] || request.headers?["content-type"]
+  ({request}) ->
+    type = request.headers?["content-type"]
     allowed = signatures.request.mediatype
     if allowed && type not in allowed
       throw new UnsupportedMediaType "content must be type(s) #{toJSON allowed}"

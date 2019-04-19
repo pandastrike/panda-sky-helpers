@@ -11,12 +11,12 @@ method = (signatures, handler) ->
       return true
 
     oneShot [
-      request
+      {request, response: {}}
       metrics
       schema signatures
       accept signatures
       authorization
-      cache
+      cache signatures
       execute handler
       stamp signatures
       location

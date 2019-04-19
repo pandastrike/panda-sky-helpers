@@ -1,27 +1,23 @@
-import {md5} from "../utils"
 
 stamp = (signatures) ->
-  ({response, cache}) ->
-    definition = signatures.response.cache
+  ({request:{cache}, response}) ->
+    return response unless cache.isPresent
 
-    return response if !definition?
+    response.metadata.headers["Cache-Control"] = "max-age=#{cache.maxAge}"
+    response.metadata.headers["Vary"] = "Accept, Accept-Encoding"
 
-    if definition.maxAge == "manual"
-      response.metadata.headers["Cache-Control"] = "max-age=#{cache?.maxAge}"
-    else
-      response.metadata.headers["Cache-Control"] = "max-age=#{definition.maxAge}"
-
-    if definition.lastModified
+    if cache.lastModified?
       response.metadata.headers["Last-Modified"] = cache?.timestamp
 
-    if definition.etag
-      response.metadata.headers.ETag = cache?.etag || md5 response.data
+    if cache.etag?
+      response.metadata.headers["ETag"] = cache.etag
 
-location = ({response, location}) ->
+
+location = ({request:{location}, response}) ->
   if location
     response.metadata.headers.Location = location
 
-capability = ({response, capability}) ->
+capability = ({request:{capability}, response}) ->
   if capability
     response.metadata.headers.Capability = capability
 

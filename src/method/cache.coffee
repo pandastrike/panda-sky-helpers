@@ -1,32 +1,45 @@
+import {isString} from "panda-parchment"
 import {md5} from "../utils"
 import responses from "../responses"
 {NotModified} = responses
 
 class Cache
-  constructor: (request) ->
+  constructor: (signatures, request) ->
+    {cache} = signatures.response
+    @isPresent = if cache? then true else false
+
+    @maxAge = cache.maxAge
+    @etag = null
     @timestamp = null
-    @inputTime = request.headers?["if-modified-since"] || request.headers?["If-Modified-Since"]
-    @inputETag = request.headers?["if-none-match"] || request.headers?["If-None-Match"]
+    @inputTime = request.headers?["if-modified-since"]
+    @inputETag = request.headers?["if-none-match"]
+    @vary = "Accept, Accept-Encoding"
 
   timeCheck: (timestamp) ->
-    timestamp = new Date(Number timestamp).toUTCString()
+    @timestamp = new Date(Number timestamp).toUTCString()
     if timestamp == @inputTime
       error = new NotModified()
-      error.metadata = headers: {"Last-Modified": timestamp}
+      error.metadata = headers:
+        "Last-Modified": @timestamp
+        "Cache-Control": "max-age=#{@maxAge}"
+        Vary: @vary
       throw error
-    else
-      @timestamp = timestamp
 
   hashCheck: (content) ->
-    etag = md5 content
-    if etag == @inputETag
+    @etag = md5 if isString content then content else toJSON content
+    if @etag == @inputETag
       error = new NotModified()
-      error.metadata = headers: {ETag: etag}
+      error.metadata = headers:
+        ETag: @etag
+        "Cache-Control": "max-age=#{@maxAge}"
+        Vary: @vary
       throw error
     else
-      @etag = etag
-    content
+      content
 
   setMaxAge: (maxAge) -> @maxAge = maxAge
+  setEtag: (content) ->
+    @etag = md5 if isString content then content else toJSON content
+  setTime: (timestamp) -> @timestamp = new Date(Number timestamp).toUTCString()
 
 export default Cache
