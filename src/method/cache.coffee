@@ -1,4 +1,4 @@
-import {isString} from "panda-parchment"
+import {isString, toJSON} from "panda-parchment"
 import {md5} from "../utils"
 import responses from "../responses"
 {NotModified} = responses
