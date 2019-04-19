@@ -6,7 +6,11 @@ import responses from "../responses"
 class Cache
   constructor: (signatures, request) ->
     {cache} = signatures.response
-    @isPresent = if cache? then true else false
+    if cache?
+      @isPresent = true
+    else
+      @isPresent = false
+      return
 
     @maxAge = cache.maxAge
     @etag = null

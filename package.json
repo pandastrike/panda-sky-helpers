@@ -1,6 +1,6 @@
 {
   "name": "panda-sky-helpers",
-  "version": "3.0.8",
+  "version": "3.0.9",
   "description": "A lightweight library to make authoring serverless, Panda Sky powered APIs easier.",
   "main": "build/npm/src/index.js",
   "files": [
