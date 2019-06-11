@@ -5,7 +5,7 @@ import {empty, merge, include, toJSON} from "panda-parchment"
 import log from "../logger"
 import Cache from "./cache"
 import responses from "../responses"
-{UnsupportedMediaType, UnprocessableEntity, NotAcceptable} = responses
+{UnsupportedMediaType, BadRequest, NotAcceptable} = responses
 ajv = new AJV()
 
 accept = (signatures) ->
@@ -59,6 +59,7 @@ execute = (handler) ->
 metrics = ({request, response}) ->
   log.debug
     path: request.path
+    query: request.url.query
     headers:
       accept: request.headers.accept
       "accept-encoding": request.headers["accept-encoding"]
@@ -89,7 +90,7 @@ schema = (signatures) ->
           out[error.dataPath] =
             path: error.schemaPath
             violations: error.params
-        throw new UnprocessableEntity toJSON out
+        throw new BadRequest toJSON out
 
 export {
   authorization
