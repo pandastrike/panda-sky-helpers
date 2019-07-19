@@ -1,10 +1,4 @@
-# Provides the dispatching logic so Sky apps don't need to know how we
-# structure things.
-import {toJSON, merge} from "panda-parchment"
-import response from "./responses"
-import logger from "./logger"
-
-dispatch = (handlers) ->
+dispatch = (context) ->
   (request, context, callback) ->
     logger.debug "Dispatching to '#{context.functionName}' handler"
     handler = handlers[context.functionName]
@@ -12,32 +6,58 @@ dispatch = (handlers) ->
       logger.error context.functionName + "Is not a function"
       return callback "<internal server error>"
 
-    request.lambdaContext = context
-    try
-      callback null, (await handler request).response
-    catch e
-      {stack, code, tag, metadata={}, data={}, message=""} = e
-      switch code
-        when undefined
-          logger.error "Status 500", stack
-          callback toJSON
-            httpStatus: 500
-            data:
-              message: "<internal server error>"
-        when 304
-          logger.debug "Status 304"
-          callback toJSON
-            httpStatus: 304
-            metadata: metadata
-            data:
-              message: "<#{tag}>"
-        else
-          logger.warn "Status #{code}", stack
-          callback toJSON
-            httpStatus: code
-            metadata: metadata
-            data:
-              message: "<#{tag}> #{message}"
-              data: data
+import {flow} from "panda-garden"
+import {isString, toJSON} from "panda-parchment"
+import {md5} from "../utils"
+import responses from "../responses"
+{NotModified} = responses
+
+class Cache
+  constructor: (signatures, request) ->
+    {cache} = signatures.response
+    if cache?
+      @isPresent = true
+    else
+      @isPresent = false
+      return
+
+    @maxAge = cache.maxAge
+    @etag = null
+    @timestamp = null
+    @inputTime = request.headers?["if-modified-since"]
+    @inputETag = request.headers?["if-none-match"]
+    @vary = "Accept, Accept-Encoding"
+
+  timeCheck: (timestamp) ->
+    @timestamp = new Date(Number timestamp).toUTCString()
+    if timestamp == @inputTime
+      error = new NotModified()
+      error.metadata = headers:
+        "Last-Modified": @timestamp
+        "Cache-Control": "max-age=#{@maxAge}"
+        Vary: @vary
+      throw error
+
+  hashCheck: (content) ->
+    @etag = md5 if isString content then content else toJSON content
+    if @etag == @inputETag
+      error = new NotModified()
+      error.metadata = headers:
+        ETag: @etag
+        "Cache-Control": "max-age=#{@maxAge}"
+        Vary: @vary
+      throw error
+    else
+      content
+
+  setMaxAge: (maxAge) -> @maxAge = maxAge
+  setEtag: (content) ->
+    @etag = md5 if isString content then content else toJSON content
+  setTime: (timestamp) -> @timestamp = new Date(Number timestamp).toUTCString()
+
+dispatch = flow [
+  applyCache
+  execute
+]
 
 export default dispatch

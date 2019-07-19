@@ -8,8 +8,8 @@
 import StandardError from "standard-error"
 
 create = (name, tag, code) ->
-  errorConstructor = (message) ->
-    StandardError.call(this, message, {tag, code})
+  errorConstructor = (body) ->
+    StandardError.call(this, name, {tag, code, body})
 
   errorConstructor.prototype = Object.create StandardError.prototype,
     {constructor: {value: errorConstructor, configurable: true, writable: true}}
