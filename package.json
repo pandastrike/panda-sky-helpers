@@ -49,8 +49,9 @@
     "ajv": "^6.6.1",
     "panda-auth-header": "0.0.1",
     "panda-parchment": "^4.2.0",
+    "panda-router": "^1.4.2",
     "source-map-support": "^0.5.0",
     "standard-error": "1.1.0",
-    "sundog": "^4.0.8"
+    "sundog": "file:../sundog"
   }
 }

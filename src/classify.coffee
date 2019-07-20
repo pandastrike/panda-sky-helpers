@@ -9,15 +9,20 @@ import {BadRequest, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaT
 
 ajv = new Ajv()
 
-matchURL = (context) ->
-  unless match = context.router.match context.request.path
-    throw new NotFound()
-  else
-    include context, {match}
-    context
+metrics = (context) ->
+  log.debug
+    path: context.request.path
+    query: context.request.queryStringParameters
+    headers:
+      accept: context.request.headers.accept
+      "accept-encoding": context.request.headers["accept-encoding"]
+      "accept-language": context.request.headers["accept-language"]
+      "user-agent": context.request.headers["user-agent"]
+
+  context
 
 assembleRequest = (context) ->
-  {request:{path, queryStringParameters, headers, body, httpMethod}} = context
+  {path, queryStringParameters, headers, body, httpMethod} = context.request
 
   # ALB separates the qs parameters from URL. Reattach.
   if empty queryStringParameters
@@ -34,15 +39,22 @@ assembleRequest = (context) ->
   else
     body = fromJSON body
 
-  include context.match, {url, headers, body, method: httpMethod}
+  context.match = {url, headers, body, method: httpMethod}
   context
+
+matchURL = (context) ->
+  unless {data, bindings} = (context.router.match context.match.url)?
+    throw new NotFound()
+  else
+    include context.match, {data, bindings}
+    context
 
 matchMethod = (context) ->
   {{method, data}} = context.match
-  unless signatures = data.methods[toLower method]?.signatures
+  unless {signatures, partition} = data.methods[toLower method]?
     throw new MethodNotAllowed()
   else
-    include context.match, {signatures}
+    include context.match, {signatures, partition}
     context
 
 matchAccept = (context) ->
@@ -99,13 +111,27 @@ matchAuthorization = (context) ->
 
   context
 
+matchCache = (context) ->
+  {headers, signatures} = context.match
+
+  unless signatures.response.cache
+    return context
+
+  context.match.cache =
+    etag: match.headers["if-none-match"]
+    timestamp: match.headers["if-modified-since"]
+
+  context
+
 classify = flow [
-  matchURL
+  metrics
   assembleRequest
+  matchURL
   matchMethod
   matchAccept
   matchContent
   matchAuthorization
+  matchCache
 ]
 
 export default classify

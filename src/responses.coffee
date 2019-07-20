@@ -8,8 +8,8 @@
 import StandardError from "standard-error"
 
 create = (name, tag, code) ->
-  errorConstructor = (body) ->
-    StandardError.call(this, name, {tag, code, body})
+  errorConstructor = (body, headers) ->
+    StandardError.call(this, name, {tag, code, body, headers})
 
   errorConstructor.prototype = Object.create StandardError.prototype,
     {constructor: {value: errorConstructor, configurable: true, writable: true}}
@@ -18,70 +18,95 @@ create = (name, tag, code) ->
   return errorConstructor
 
 responses =
-  Continue: create "Continue", "continue", 100
-  SwitchingProtocols: create "SwitchingProtocols", "switching protocols", 101
-  Processing: create "Processing", "processing", 102
+  Continue: create "Continue", "100 Continue", 100
 
-  OK: create "OK", "ok", 200
-  Created: create "Created", "created", 201
-  Accepted: create "Accepted", "accepted", 202
-  NonAuthoritativeInformation: create "NonAuthoritativeInformation", "non-authoritative information", 203
-  NoContent: create "NoContent", "no content", 204
-  ResetContent: create "ResetContent", "reset content", 205
-  PartialContent: create "PartialContent", "partial content", 206
-  MultiStatus: create "MultiStatus", "multi-status", 207
-  AlreadyReported: create "AlreadyReported", "already reported", 208
-  IMUsed: create "IMUsed", "IM used", 226
+  OK: create "OK", "200 OK", 200
+  Created: create "Created", "201 Created", 201
+  Accepted: create "Accepted", "202 Accepted", 202
+  NonAuthoritativeInformation: create "NonAuthoritativeInformation", "203 Non-Authoritative Information", 203
+  NoContent: create "NoContent", "204 No Content", 204
+  ResetContent: create "ResetContent", "205 Reset Content", 205
+  PartialContent: create "PartialContent", "206 Partial Content", 206
 
-  MultipleChoices: create "MultipleChoices", "multiple choices", 300
-  MovedPermanently: create "MovedPermanently", "moved permanently", 301
-  Found: create "Found", "found", 302
-  SeeOther: create "SeeOther", "see other", 303
-  NotModified: create "NotModified", "not modified", 304
-  UseProxy: create "UseProxy", "use proxy", 305
-  TemporaryRedirect: create "TemporaryRedirect", "temporary redirect", 307
-  PermanentRedirect: create "PermanentRedirect", "permanent redirect", 308
+  MultipleChoices: create "MultipleChoices", "300 Multiple Choices", 300
+  MovedPermanently: create "MovedPermanently", "301 Moved Permanently", 301
+  Found: create "Found", "302 Found", 302
+  SeeOther: create "SeeOther", "303 See Other", 303
+  NotModified: create "NotModified", "304 Not Modified", 304
+  UseProxy: create "UseProxy", "305 Use Proxy", 305
+  TemporaryRedirect: create "TemporaryRedirect", "307 Temporary Redirect", 307
 
-  BadRequest: create "BadRequest", "bad request", 400
-  Unauthorized: create "Unauthorized", "unauthorized", 401
-  PaymentRequired: create "PaymentRequired", "payment required", 402
-  Forbidden: create "Forbidden", "forbidden", 403
-  NotFound: create "NotFound", "not found", 404
-  MethodNotAllowed: create "MethodNotAllowed", "method not allowed", 405
-  NotAcceptable: create "NotAcceptable", "not acceptable", 406
-  ProxyAuthenticationRequired: create "ProxyAuthenticationRequired", "proxy authentication required", 407
-  RequestTimeout: create "RequestTimeout", "request timeout", 408
-  Conflict: create "Conflict", "conflict", 409
-  Gone: create "Gone", "gone", 410
-  LengthRequired: create "LengthRequired", "length required", 411
-  PreconditionFailed: create "PreconditionFailed", "precondition failed", 412
-  TooLarge: create "TooLarge", "request entity too large", 413
-  URITooLong: create "URITooLong", "URI too long", 414
-  UnsupportedMediaType: create "UnsupportedMediaType", "unsupported media type", 415
-  RangeNotSatisfiable: create "RangeNotSatisfiable", "range not satisfiable", 416
-  ExpectationFailed: create "ExpectationFailed", "expectation failed", 417
-  IMATeapot: create "IMATeapot", "I'm a teapot", 418
-  EnhanceYourCalm: create "EnhanceYourCalm:", "enhance your calm", 420
-  MisdirectedRequest: create "MisdirectedRequest ", "misdirected request ", 421
-  UnprocessableEntity: create "UnprocessableEntity", "unprocessable entity", 422
-  Locked: create "Locked", "locked", 423
-  FailedDependency: create "FailedDependency", "failed dependency", 424
-  UpgradeRequired: create "UpgradeRequired", "upgrade required", 426
-  PreconditionRequired: create "PreconditionRequired", "precondition required", 428
-  TooManyRequests: create "TooManyRequests", "too many requests", 429
-  RequestHeaderFieldsTooLarge: create "RequestHeaderFieldsTooLarge", "request header fields too large", 431
-  UnavailableForLegalReasons: create "UnavailableForLegalReasons", "unavailable for legal reasons", 451
+  BadRequest: create "BadRequest", "400 Bad Request", 400
+  Unauthorized: create "Unauthorized", "401 Unauthorized", 401
+  PaymentRequired: create "PaymentRequired", "402 Payment Required", 402
+  Forbidden: create "Forbidden", "403 Forbidden", 403
+  NotFound: create "NotFound", "404 Not Found", 404
+  MethodNotAllowed: create "MethodNotAllowed", "405 Method Not Allowed", 405
+  NotAcceptable: create "NotAcceptable", "406 Not Acceptable", 406
+  ProxyAuthenticationRequired: create "ProxyAuthenticationRequired", "407 Proxy Authentication Required", 407
+  RequestTimeout: create "RequestTimeout", "408 Request Timeout", 408
+  Conflict: create "Conflict", "409 Conflict", 409
+  Gone: create "Gone", "401 Gone", 410
+  LengthRequired: create "LengthRequired", "411 Length Required", 411
+  PreconditionFailed: create "PreconditionFailed", "412 Precondition Failed", 412
+  PayloadTooLarge: create "TooLarge", "413 Payload Too Large", 413
+  URITooLong: create "URITooLong", "414 URI Too Long", 414
+  UnsupportedMediaType: create "UnsupportedMediaType", "415 Unsupported Media Type", 415
+  RangeNotSatisfiable: create "RangeNotSatisfiable", "416 Range Not Satisfiable", 416
+  ExpectationFailed: create "ExpectationFailed", "417 Expectation Failed", 417
+  UpgradeRequired: create "UpgradeRequired", "426 Upgrade Required", 426
 
-  Internal: create "Internal", "internal server error", 500
-  NotImplemented: create "NotImplemented", "not implemented", 501
-  BadGateway: create "BadGateway", "bad gateway", 502
-  ServiceUnavailable: create "ServiceUnavailable", "service unavailable", 503
-  GatewayTimeout: create "GatewayTimeout", "gateway time-out", 504
-  HTTPVersionNotSupported: create "HTTPVersionNotSupported", "HTTP version not supported", 505
-  VariantAlsoNegotiates: create "VariantAlsoNegotiates", "variant also negotiates", 506
-  InsufficientStorage: create "InsufficientStorage", "insufficient storage", 507
-  LoopDetected: create "LoopDetected", "loop detected", 508
-  NotExtended: create "Not Extended", "not extended", 510
-  NetworkAuthenticationRequired: create "NetworkAuthenticationRequired", "network authentication required", 511
+  Internal: create "Internal", "500 Internal Server Error", 500
+  NotImplemented: create "NotImplemented", "501 Not Implemented", 501
+  BadGateway: create "BadGateway", "502 Bad Gateway", 502
+  ServiceUnavailable: create "ServiceUnavailable", "503 Service Unavailable", 503
+  GatewayTimeout: create "GatewayTimeout", "504 Gateway Timeout", 504
+  HTTPVersionNotSupported: create "HTTPVersionNotSupported", "505 HTTP Version Not Supported", 505
+
+
+  100: "100 Continue"
+
+  200: "200 OK"
+  201: "201 Created"
+  202: "202 Accepted"
+  203: "203 Non-Authoritative Information"
+  204: "204 No Content"
+  205: "205 Reset Content"
+  206: "206 Partial Content"
+
+  300: "300 Multiple Choices"
+  301: "301 Moved Permanently"
+  302: "302 Found"
+  303: "303 See Other"
+  304: "304 Not Modified"
+  305: "305 Use Proxy"
+  307: "307 Temporary Redirect"
+
+  400: "400 Bad Request"
+  401: "401 Unauthorized"
+  402: "402 Payment Required"
+  403: "403 Forbidden"
+  404: "404 Not Found"
+  405: "405 Method Not Allowed"
+  406: "406 Not Acceptable"
+  407: "407 Proxy Authentication Required"
+  408: "408 Request Timeout"
+  409: "409 Conflict"
+  410: "401 Gone"
+  411: "411 Length Required"
+  412: "412 Precondition Failed"
+  413: "413 Payload Too Large"
+  414: "414 URI Too Long"
+  415: "415 Unsupported Media Type"
+  416: "416 Range Not Satisfiable"
+  417: "417 Expectation Failed"
+  426: "426 Upgrade Required"
+
+  500: "500 Internal Server Error"
+  501: "501 Not Implemented"
+  502: "502 Bad Gateway"
+  503: "503 Service Unavailable"
+  504: "504 Gateway Timeout"
+  505: "505 HTTP Version Not Supported"
 
 export default responses
