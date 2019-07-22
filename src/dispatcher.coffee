@@ -1,25 +1,38 @@
 import {flow, wrap} from "panda-garden"
-import {toJSON, merge} from "panda-parchment"
+import {fromJSON, toJSON, merge} from "panda-parchment"
+import {read} from "panda-quill"
+import {Router} from "panda-router"
 
 import logger from "./logger"
 import classify from "./classify"
 import dispatch from "./dispatch"
 import {defaultCORS} from "./cors"
 
-setup = (api, request, lambdaContext, callback) ->
-  response = {}
-  {definition, router} = await api
-  {definition, router, request, response, lambdaContext, callback}
+buildRouter = (definition) ->
+  router = new Router()
+  for r, {template, methods} of definition.resources
+    router.add
+      template: template
+      data:
+        resource: r
+        template: template
+        methods: methods
 
-dispatcher = (definition) ->
+  router
+
+setup = (path, request) ->
+  response = headers: {}
+  definition = fromJSON await read path
+  router = buildRouter definition
+  {definition, router, request, response}
+
+
+dispatcher = (path) ->
   (request, context, callback) ->
     new Promise (resolve, reject) ->
-      (do flow [
-        wrap setup definition, request, context, callback
-        classify
-        dispatch
-      ])
-      .then (response) -> resolve response
+      (flow [setup, classify, dispatch]) path, request
+      .then (response) ->
+        resolve callback null, response
       .catch (error) ->
         {stack, code, tag, body="", headers={}} = error
         switch code

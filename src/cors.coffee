@@ -21,4 +21,4 @@ defaultCORS =
   "Access-Control-Allow-Origin": "*"
   "Access-Control-Expose-Headers": exposedHeaders
 
-export default {matchCORS, defaultCORS}
+export {matchCORS, defaultCORS}

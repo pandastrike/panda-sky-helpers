@@ -13,7 +13,7 @@ import responses from "./responses"
 ajv = new AJV()
 
 metrics = (context) ->
-  await log.debug
+  log.debug toJSON
     path: context.request.path
     query: context.request.queryStringParameters
     headers:
@@ -21,6 +21,7 @@ metrics = (context) ->
       "accept-encoding": context.request.headers["accept-encoding"]
       "accept-language": context.request.headers["accept-language"]
       "user-agent": context.request.headers["user-agent"]
+    true
 
   context
 
@@ -59,22 +60,22 @@ matchAccept = (context) ->
   {signatures, headers} = context.match
 
   # Negotiate content type by comparing client and our preferences.
-  preferences = signatures.response.mediatype || ["application/json"]
-  header = headers.accept || "*/*"
-  acceptable = Accept.mediaType header, preferences
-  if isEmpty acceptable
-    throw new NotAcceptable "supported: #{toJSON preferences, true}"
-  else
-    context.match.accept = acceptable
+  if preferences = signatures.response.mediatype
+    header = headers.accept || "*/*"
+    acceptable = Accept.mediaType header, preferences
+    if isEmpty acceptable
+      throw new NotAcceptable "supported: #{toJSON preferences, true}"
+    else
+      context.match.accept = acceptable
 
   # Negotiate content encoding by comparing client and our preferences.
-  preferences = ["gzip", "identity"]
-  header = headers["accept-encoding"] || ""
-  acceptable = Accept.encoding header, preferences
-  if isEmpty acceptable
-    throw new NotAcceptable "supported: #{toJSON preferences, true}"
-  else
-    context.match.acceptEncoding = acceptable
+  if preferences = signatures.response.encoding
+    header = headers["accept-encoding"] || ""
+    acceptable = Accept.encoding header, preferences
+    if isEmpty acceptable
+      throw new NotAcceptable "supported: #{toJSON preferences, true}"
+    else
+      context.match.acceptEncoding = acceptable
 
   context
 
@@ -100,10 +101,8 @@ matchContent = (context) ->
         throw new UnsupportedMediaType "request contains a non-empty body, but no content-type header"
     when "application/json" then body = fromJSON body
     when "text/yaml" then body = yaml body
-    else
-      throw new UnsupportedMediaType "no support for request content type #{type}"
 
-  if signatures.request.schema
+  if signatures.request.schema 
     unless ajv.validate signatures.request.schema, body
       log.warn toJSON ajv.errors, true
       throw new BadRequest ajv.errors

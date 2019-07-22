@@ -5,7 +5,6 @@ import Sundog from "sundog"
 import env from "./env"
 import log from "./logger"
 import responses from "./responses"
-import parse from "./parse"
 import dispatcher from "./dispatcher"
 import classify from "./classify"
 import dispatch from "./dispatch"
@@ -18,7 +17,6 @@ sky = {
   log
   aws
   responses
-  parse
   dispatcher
   classify
   dispatch
@@ -32,7 +30,6 @@ export {
   log
   aws
   responses
-  parse
   dispatcher
   classify
   dispatch
