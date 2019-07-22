@@ -1,16 +1,19 @@
 import {flow} from "panda-garden"
-import {include, toLower, empty, toJSON, fromJSON} from "panda-parchment"
-import Accept from "accept"
+import {include, toLower, toJSON, fromJSON, isEmpty} from "panda-parchment"
+import {yaml} from "panda-serialize"
+import Accept from "@hapi/accept"
 import AJV from "ajv"
 import {parse as parseAuthorization} from "panda-auth-header"
 
+import {ungzip} from "./compress"
 import log from "./logger"
-import {BadRequest, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Unauthorized} from "./responses"
+import responses from "./responses"
+{BadRequest, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Unauthorized, UnsupportedMediaType} = responses
 
-ajv = new Ajv()
+ajv = new AJV()
 
 metrics = (context) ->
-  log.debug
+  await log.debug
     path: context.request.path
     query: context.request.queryStringParameters
     headers:
@@ -21,39 +24,34 @@ metrics = (context) ->
 
   context
 
-assembleRequest = (context) ->
-  {path, queryStringParameters, headers, body, httpMethod} = context.request
+assembleURL = (context) ->
+  {path, queryStringParameters, headers, httpMethod} = context.request
 
   # ALB separates the qs parameters from URL. Reattach.
-  if empty queryStringParameters
+  if isEmpty queryStringParameters
     url = path
   else
     querystring = ""
     for key, value of queryStringParameters
       querystring += "&#{key}=#{value}"
-    url += "#{path}?#{querystring[1...]}"
+    url = "#{path}?#{querystring[1...]}"
 
-  # TODO: Support more than just JSON
-  if empty body
-    body = {}
-  else
-    body = fromJSON body
-
-  context.match = {url, headers, body, method: httpMethod}
+  context.match = {url, headers, method: httpMethod}
   context
 
 matchURL = (context) ->
-  unless {data, bindings} = (context.router.match context.match.url)?
+  unless (route = context.router.match context.match.url)?
     throw new NotFound()
   else
-    include context.match, {data, bindings}
+    include context.match, route
     context
 
 matchMethod = (context) ->
-  {{method, data}} = context.match
-  unless {signatures, partition} = data.methods[toLower method]?
+  {method, data} = context.match
+  unless (def = data.methods[toLower method])?
     throw new MethodNotAllowed()
   else
+    {signatures, partition} = def
     include context.match, {signatures, partition}
     context
 
@@ -64,7 +62,7 @@ matchAccept = (context) ->
   preferences = signatures.response.mediatype || ["application/json"]
   header = headers.accept || "*/*"
   acceptable = Accept.mediaType header, preferences
-  if empty acceptable
+  if isEmpty acceptable
     throw new NotAcceptable "supported: #{toJSON preferences, true}"
   else
     context.match.accept = acceptable
@@ -73,7 +71,7 @@ matchAccept = (context) ->
   preferences = ["gzip", "identity"]
   header = headers["accept-encoding"] || ""
   acceptable = Accept.encoding header, preferences
-  if empty acceptable
+  if isEmpty acceptable
     throw new NotAcceptable "supported: #{toJSON preferences, true}"
   else
     context.match.acceptEncoding = acceptable
@@ -81,19 +79,36 @@ matchAccept = (context) ->
   context
 
 matchContent = (context) ->
-  {{headers, body, signatures}} = context.match
-
+  {headers, signatures} = context.match
+  {body} = context.request
   type = headers["content-type"]
+  encoding = headers["content-encoding"]
+
   allowed = signatures.request.mediatype
   if allowed && (type not in allowed)
-    throw new UnsupportedMediaType "supported: #{toJSON allowed}"
+    throw new UnsupportedMediaType "supported response types: #{toJSON allowed}"
 
-  # TODO: Allow this to support more than just application/json
-  if {schema} = signatures.request
-    unless ajv.validate schema, body
+  switch encoding
+    when undefined, "identity" then break
+    when "gzip" then body = await ungzip body
+    else
+      throw new UnsupportedMediaType "no support for request content encoding #{encoding}"
+
+  switch type
+    when undefined
+      unless isEmpty body
+        throw new UnsupportedMediaType "request contains a non-empty body, but no content-type header"
+    when "application/json" then body = fromJSON body
+    when "text/yaml" then body = yaml body
+    else
+      throw new UnsupportedMediaType "no support for request content type #{type}"
+
+  if signatures.request.schema
+    unless ajv.validate signatures.request.schema, body
       log.warn toJSON ajv.errors, true
       throw new BadRequest ajv.errors
 
+  context.match.body = body
   context
 
 matchAuthorization = (context) ->
@@ -118,14 +133,14 @@ matchCache = (context) ->
     return context
 
   context.match.cache =
-    etag: match.headers["if-none-match"]
-    timestamp: match.headers["if-modified-since"]
+    etag: headers["if-none-match"]
+    timestamp: headers["if-modified-since"]
 
   context
 
 classify = flow [
   metrics
-  assembleRequest
+  assembleURL
   matchURL
   matchMethod
   matchAccept

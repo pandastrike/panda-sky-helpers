@@ -1,4 +1,3 @@
-import zlib from "zlib"
 import SDK from "aws-sdk"
 import Sundog from "sundog"
 import {flow} from "panda-garden"
@@ -7,31 +6,22 @@ import env from "./env"
 import logger from "./logger"
 import {md5} from "./cache"
 import {matchCORS} from "./cors"
-import Responses from "./responses"
+import {isCompressible, gzip} from "./compress"
 
 {invoke} = Sundog(SDK).AWS.Lambda()
-
-gzip = (buffer) ->
-  new Promise (resolve, reject) ->
-    zlib.gzip buffer, (error, result) ->
-      if error
-        reject error
-      else
-        resolve result.toString "base64"
 
 execute = (context) ->
   {partition} = context.match
 
   name = "#{env.name}-#{env.environment}-#{partition}"
   logger.debug "Dispatching to lambda '#{name}'"
-  await inovke name, context
+  await invoke name, context
 
 matchCache = (context) ->
   {response, match} = context
   {maxAge, etag} = match.signatures.response.cache
 
   include context.response.headers
-    Vary: "Accept, Accept-Encoding" if maxAge
     "Cache-Control": "max-age=#{maxAge}" if maxAge
     ETag: md5 response.body if etag
 
@@ -49,22 +39,24 @@ matchHeaders = (context) ->
     include context.response.headers,
       "Content-Type": accept
       "Content-Encoding": acceptEncoding
+      Vary: "Accept, Accept-Encoding"
 
   context
 
 
 matchEncoding = (context) ->
-  {body} = context.response
+  {body, encodeReady} = context.response
 
-  if body?
+  if body? && !encodeReady
     switch context.match.acceptEncoding
       when "identity" then break
       when "gzip"
         buffer = Buffer.from (toJSON body), "utf8"
-        if buffer.length < 1000
-          context.response.headers["Content-Encoding"] = "identity"
-        else
+        if isCompressible buffer, context.match.accept
           context.response.body = await gzip buffer
+          context.response.isBase64Encoded = true
+        else
+          context.response.headers["Content-Encoding"] = "identity"
       else
         throw new Error "Bad encoding: #{context.match.acceptEncoding}"
 
@@ -79,12 +71,13 @@ stamp = flow [
 ]
 
 respond = ({response, callback}) ->
-  {code, tag, headers, body} = response
+  {code, tag, headers, body, isBase64Encoded=false} = response
   callback null,
     statusCode: code
     statusDescription: tag
     headers: headers
     body: body
+    isBase64Encoded: isBase64Encoded
 
 dispatch = flow [
   execute

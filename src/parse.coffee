@@ -1,9 +1,7 @@
-import {yaml} from "panda-serialize"
-import {read} from "panda-quill"
+import {fromJSON} from "panda-parchment"
 import {Router} from "panda-router"
 
-parse = (path) ->
-  definition = yaml await read path
+parse = (definition) ->
   router = new Router()
   for r, {template, methods} of definition.resources
     router.add

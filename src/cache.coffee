@@ -1,6 +1,6 @@
 import Crypto from "crypto"
 import {isString, toJSON} from "panda-parchment"
-import responses from "../responses"
+import responses from "./responses"
 {NotModified} = responses
 
 # TODO: Make this sensitive to encoding that are not utf-8.
