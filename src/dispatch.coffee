@@ -1,11 +1,11 @@
 import SDK from "aws-sdk"
 import Sundog from "sundog"
 import {flow} from "panda-garden"
-import {first, include, fromJSON, toJSON, isString} from "panda-parchment"
+import {first, include, fromJSON, toJSON, isString, microseconds} from "panda-parchment"
 import env from "./env"
 import logger from "./logger"
 import Responses from "./responses"
-import {md5} from "./cache"
+import {md5, hashCheck, toString} from "./cache"
 import {matchCORS} from "./cors"
 import {isCompressible, gzip} from "./compress"
 
@@ -16,18 +16,40 @@ execute = (context) ->
 
   name = "#{env.name}-#{env.environment}-#{partition}"
   logger.debug "Dispatching to lambda '#{name}'"
+
+  start = microseconds()
   {Payload} = await invoke name, context
+  logger.info "Dispatch Handler Duration: #{((microseconds() - start) / 1000).toFixed(2)}ms"
+
   context.response = (fromJSON Payload.toString()).response
   context
 
-matchCache = (context) ->
-  {response, match} = context
+matchEncoding = (context) ->
+  {mediatype} = context.match.signatures.response
+  {body, encodeReady} = context.response
 
-  if ({cache} = match.signatures.response)?
-    {maxAge, etag} = cache
-    include context.response.headers,
-      "Cache-Control": "max-age=#{maxAge}" if maxAge
-      ETag: md5 response.body if etag
+  if mediatype && body? && !encodeReady
+    switch context.match.acceptEncoding
+      when "identity" then break
+      when "gzip"
+        buffer = Buffer.from (toString body), "utf8"
+        if isCompressible buffer, context.match.accept
+          context.response.body = await gzip buffer
+          context.response.isBase64Encoded = true
+        else
+          context.response.headers["Content-Encoding"] = "identity"
+      else
+        throw new Error "Bad encoding: #{context.match.acceptEncoding}"
+
+  context
+
+matchCache = (context) ->
+  {response:{body}, match} = context
+
+  if current = hashCheck match, body
+    include context.response.headers, ETag: current
+  if maxAge = match.signatures.response.cache?.maxAge
+    include context.response.headers, "Cache-Control": "max-age=#{maxAge}"
 
   context
 
@@ -48,31 +70,14 @@ matchHeaders = (context) ->
   context
 
 
-matchEncoding = (context) ->
-  {mediatype} = context.match.signatures.response
-  {body, encodeReady} = context.response
 
-  if mediatype && !encodeReady
-    switch context.match.acceptEncoding
-      when "identity" then break
-      when "gzip"
-        buffer = Buffer.from (toJSON body), "utf8"
-        if isCompressible buffer, context.match.accept
-          context.response.body = await gzip buffer
-          context.response.isBase64Encoded = true
-        else
-          context.response.headers["Content-Encoding"] = "identity"
-      else
-        throw new Error "Bad encoding: #{context.match.acceptEncoding}"
-
-  context
 
 stamp = flow [
+  matchEncoding
   matchCache
   matchStatus
   matchCORS
   matchHeaders
-  matchEncoding
 ]
 
 respond = ({response}) ->

@@ -7,9 +7,14 @@ import responses from "./responses"
 md5 = (str) ->
   Crypto.createHash("md5").update(str, "utf8").digest("hex")
 
+toString = (x) -> if isString x then x else toJSON x
+
 timeCheck = (match, value) ->
-  {timestamp} = match.cache
-  {maxAge} = match.signature.response.cache
+  timestamp = match.cache?.timestamp
+  return unless timestamp?
+
+  maxAge = match.signatures.response.cache?.maxAge
+
   headers =
     "Last-Modified": timestamp
     "Cache-Control": "max-age=#{maxAge}" if maxAge
@@ -19,14 +24,21 @@ timeCheck = (match, value) ->
     throw new NotModified null, headers
 
 hashCheck = (match, content) ->
-  {etag} = match.cache
-  {maxAge} = match.signature.response.cache
+  etag = match.cache?.etag
+  return unless etag? && content?
+
+  maxAge = match.signatures.response.cache?.maxAge
+
   headers =
     ETag: etag
     "Cache-Control": "max-age=#{maxAge}" if maxAge
     Vary: "Accept, Accept-Encoding"
 
-  if etag == (md5 if isString content then content else toJSON content)
-    throw new NotModified null, headers
+  current = md5 toString content
 
-export {md5, timeCheck, hashCheck}
+  if etag == current
+    throw new NotModified null, headers
+  else
+    current
+
+export {md5, toString, timeCheck, hashCheck}
