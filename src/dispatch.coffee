@@ -21,7 +21,12 @@ execute = (context) ->
   {Payload} = await invoke name, context
   logger.info "Dispatch Handler Duration: #{((microseconds() - start) / 1000).toFixed(2)}ms"
 
-  context.response = (fromJSON Payload.toString()).response
+  {response, handlerError} = fromJSON Payload.toString()
+  if handlerError
+    throw Responses.hydrate handlerError
+  else
+    context.response = response
+
   context
 
 matchEncoding = (context) ->

@@ -14,6 +14,7 @@ methodDispatcher = (resources) ->
       callback null, await f context
     catch error
       console.log error
-      callback error
+      context.handlerError = Responses.bundle error
+      callback null, context
 
 export default methodDispatcher

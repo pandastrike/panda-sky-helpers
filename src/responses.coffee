@@ -6,6 +6,7 @@
 # The error tag is a target that's easy to hit with Gateway's regex hook on error reponses.  That allows it to dispatch the correct status code.
 
 import StandardError from "standard-error"
+import {toJSON, fromJSON} from "panda-parchment"
 
 create = (name, tag, code) ->
   errorConstructor = (body, headers) ->
@@ -18,6 +19,13 @@ create = (name, tag, code) ->
   return errorConstructor
 
 responses =
+  hydrate: (str) ->
+    {name, tag, code, body, headers} = fromJSON str
+    new StandardError name, {tag, code, body, headers}
+
+  bundle: ({name, tag, code, body, headers}) ->
+    toJSON {name, tag, code, body, headers}
+
   Continue: create "Continue", "100 Continue", 100
 
   OK: create "OK", "200 OK", 200
