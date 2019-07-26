@@ -1,5 +1,5 @@
 import {flow} from "panda-garden"
-import {include, toLower, toJSON, fromJSON, isEmpty} from "panda-parchment"
+import {include, toLower, toUpper, toJSON, fromJSON, isEmpty, merge} from "panda-parchment"
 import {yaml} from "panda-serialize"
 import Accept from "@hapi/accept"
 import AJV from "ajv"
@@ -7,8 +7,9 @@ import {parse as parseAuthorization} from "panda-auth-header"
 
 import {ungzip} from "./compress"
 import log from "./logger"
+import {defaultCORS} from "./cors"
 import responses from "./responses"
-{BadRequest, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Unauthorized, UnsupportedMediaType} = responses
+{NoContent, BadRequest, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Unauthorized, UnsupportedMediaType} = responses
 
 ajv = new AJV()
 
@@ -16,6 +17,7 @@ metrics = (context) ->
   log.debug toJSON
     path: context.request.path
     query: context.request.queryStringParameters
+    method: context.request.httpMethod
     headers:
       accept: context.request.headers.accept
       "accept-encoding": context.request.headers["accept-encoding"]
@@ -45,6 +47,16 @@ matchURL = (context) ->
     throw new NotFound()
   else
     include context.match, route
+    context
+
+matchOPTIONS = (context) ->
+  {method, data} = context.match
+  if method == "OPTIONS"
+    throw new NoContent null, merge defaultCORS,
+      "Access-Control-Allow-Methods": do ->
+        (toUpper key for key in keys data.methods).join ", "
+      "Access-Control-Max-Age": 7200 # Max in Chrome
+  else
     context
 
 matchMethod = (context) ->
@@ -102,7 +114,7 @@ matchContent = (context) ->
     when "application/json" then body = fromJSON body
     when "text/yaml" then body = yaml body
 
-  if signatures.request.schema 
+  if signatures.request.schema
     unless ajv.validate signatures.request.schema, body
       log.warn toJSON ajv.errors, true
       throw new BadRequest ajv.errors
@@ -141,6 +153,7 @@ classify = flow [
   metrics
   assembleURL
   matchURL
+  matchOPTIONS
   matchMethod
   matchAccept
   matchContent

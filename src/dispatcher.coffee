@@ -43,6 +43,13 @@ dispatcher = (path) ->
               statusDescription: "500 Internal Server Error"
               headers: defaultCORS
               isBase64Encoded: false
+          when 204
+            logger.debug "Status 204 (CORS)"
+            resolve callback null,
+              statusCode: code
+              statusDescription: tag
+              headers: headers
+              isBase64Encoded: false
           when 304
             logger.debug "Status 304"
             resolve callback null,
@@ -59,5 +66,13 @@ dispatcher = (path) ->
                 "Content-Type": "application/json"
               body: toJSON error: body
               isBase64Encoded: false
+
+    .catch (error) ->
+      logger.error "failsafe handler", stack
+      callback null,
+        statusCode: 500
+        statusDescription: "500 Internal Server Error"
+        headers: defaultCORS
+        isBase64Encoded: false
 
 export default dispatcher

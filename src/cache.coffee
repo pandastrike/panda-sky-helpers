@@ -10,9 +10,9 @@ md5 = (str) ->
 toString = (x) -> if isString x then x else toJSON x
 
 timeCheck = (match, value) ->
-  timestamp = match.cache?.timestamp
-  return unless timestamp?
+  return unless match.signatures.response.cache?.etag && value?
 
+  timestamp = match.cache?.timestamp
   maxAge = match.signatures.response.cache?.maxAge
 
   headers =
@@ -24,9 +24,9 @@ timeCheck = (match, value) ->
     throw new NotModified null, headers
 
 hashCheck = (match, content) ->
-  etag = match.cache?.etag
-  return unless etag? && content?
+  return unless match.signatures.response.cache?.etag && content?
 
+  etag = match.cache?.etag
   maxAge = match.signatures.response.cache?.maxAge
 
   headers =
