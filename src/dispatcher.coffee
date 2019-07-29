@@ -43,13 +43,6 @@ dispatcher = (path) ->
               statusDescription: "500 Internal Server Error"
               headers: defaultCORS
               isBase64Encoded: false
-          when 204
-            logger.debug "Status 204 (CORS)"
-            resolve callback null,
-              statusCode: code
-              statusDescription: tag
-              headers: headers
-              isBase64Encoded: false
           when 304
             logger.debug "Status 304"
             resolve callback null,
