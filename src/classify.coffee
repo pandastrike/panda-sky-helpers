@@ -53,7 +53,7 @@ matchOPTIONS = (context) ->
   {method, data} = context.match
   if method == "OPTIONS"
     throw new NoContent "CORS preflight", merge defaultCORS,
-      "Access-Control-Max-Age": 7200 # Max in Chrome
+      #{}"Access-Control-Max-Age": 7200 # Max in Chrome
       "Access-Control-Allow-Methods": do ->
         (toUpper key for key in keys data.methods).join ", "
   else

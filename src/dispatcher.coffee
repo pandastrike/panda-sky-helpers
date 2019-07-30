@@ -35,6 +35,7 @@ dispatcher = (path) ->
         resolve callback null, response
       .catch (error) ->
         {stack, code, tag, body="", headers={}} = error
+        console.log {code, tag, body, headers}
         switch code
           when undefined
             logger.error "Status 500", stack
@@ -42,15 +43,6 @@ dispatcher = (path) ->
               statusCode: 500
               statusDescription: "500 Internal Server Error"
               headers: defaultCORS
-              isBase64Encoded: false
-          when 204
-            logger.warn "CORS Preflight Response (204)", headers
-            resolve callback null,
-              statusCode: code
-              statusDescription: tag
-              headers: merge headers,
-                "Content-Type": "application/json"  # TODO: Why?
-              body: toJSON error: body
               isBase64Encoded: false
           when 304
             logger.debug "Status 304"
@@ -64,7 +56,7 @@ dispatcher = (path) ->
             resolve callback null,
               statusCode: code
               statusDescription: tag
-              headers: merge defaultCORS,
+              headers: merge defaultCORS, headers,
                 "Content-Type": "application/json"
               body: toJSON error: body
               isBase64Encoded: false
