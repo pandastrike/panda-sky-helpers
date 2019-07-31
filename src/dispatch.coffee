@@ -57,8 +57,18 @@ matchCache = (context) ->
 
   if current = hashCheck match, body
     include context.response.headers, ETag: current
-  if (maxAge = match.signatures.response.cache?.maxAge)?
-    include context.response.headers, "Cache-Control": "max-age=#{maxAge}"
+
+  if (cache = match.signatures.response.cache)?
+    {maxAge, sharedMaxAge} = cache
+    if maxAge? && sharedMaxAge?
+      include context.response.headers,
+        "Cache-Control": "max-age=#{maxAge}, s-maxage=#{sharedMaxAge}"
+    else if maxAge?
+      include context.response.headers,
+        "Cache-Control": "max-age=#{maxAge}"
+    else if sharedMaxAge?
+      include context.response.headers,
+        "Cache-Control": "s-maxage=#{sharedMaxAge}"
 
   context
 
