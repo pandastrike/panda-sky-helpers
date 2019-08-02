@@ -4,8 +4,8 @@ import Sundog from "sundog"
 
 import env from "./env"
 import log from "./logger"
+import meter from "./meter"
 import responses from "./responses"
-import method from "./method"
 import load from "./load"
 import dispatcher from "./dispatcher"
 import classify from "./classify"
@@ -17,9 +17,9 @@ aws = (sdk) -> Sundog(sdk).AWS
 sky = {
   env
   log
+  meter
   aws
   responses
-  method
   load
   dispatcher
   classify
@@ -32,9 +32,9 @@ export default sky
 export {
   env
   log
+  meter
   aws
   responses
-  method
   load
   dispatcher
   classify

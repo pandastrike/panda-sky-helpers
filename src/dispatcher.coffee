@@ -1,42 +1,29 @@
 import {flow, wrap} from "panda-garden"
-import {fromJSON, toJSON, merge, sleep} from "panda-parchment"
-import {read} from "panda-quill"
-import {Router} from "panda-router"
+import {toJSON, merge, sleep} from "panda-parchment"
 
-import logger from "./logger"
+import log from "./logger"
+import meter from "./meter"
 import classify from "./classify"
 import dispatch from "./dispatch"
 import {defaultCORS} from "./cors"
 
-buildRouter = (definition) ->
-  router = new Router()
-  for r, {template, methods} of definition.resources
-    router.add
-      template: template
-      data:
-        resource: r
-        template: template
-        methods: methods
-
-  router
-
-setup = (path, request) ->
+setup = (request, router, handlers) ->
   response = headers: {}
-  definition = fromJSON await read path
-  router = buildRouter definition
-  {definition, router, request, response}
+  {request, router, handlers, response}
 
+dispatcher = (bundle) ->
 
-dispatcher = (path) ->
   (request, context, callback) ->
+    [router, handlers] = await bundle
+
     if request.cuddleMonkey?
       time = 3000
-      logger.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
+      log.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
       await sleep time
       return callback null, "Cuddle Monkey success"
 
     new Promise (resolve, reject) ->
-      (flow [setup, classify, dispatch]) path, request
+      (meter "Dispatch", flow [setup, classify, dispatch]) request, router, handlers
       .then (response) ->
         resolve callback null, response
       .catch (error) ->
@@ -44,21 +31,21 @@ dispatcher = (path) ->
         console.log {code, tag, body, headers}
         switch code
           when undefined
-            logger.error "Status 500", stack
+            log.error "Status 500", stack
             resolve callback null,
               statusCode: 500
               statusDescription: "500 Internal Server Error"
               headers: defaultCORS
               isBase64Encoded: false
           when 304
-            logger.debug "Status 304"
+            log.debug "Status 304"
             resolve callback null,
               statusCode: code
               statusDescription: tag
               headers: merge defaultCORS, headers
               isBase64Encoded: false
           else
-            logger.warn "Status #{code}", stack
+            log.warn "Status #{code}", stack
             resolve callback null,
               statusCode: code
               statusDescription: tag
@@ -68,7 +55,7 @@ dispatcher = (path) ->
               isBase64Encoded: false
 
     .catch (error) ->
-      logger.error "failsafe handler", stack
+      log.error "failsafe handler", stack
       callback null,
         statusCode: 500
         statusDescription: "500 Internal Server Error"

@@ -1,33 +1,22 @@
-import SDK from "aws-sdk"
-import Sundog from "sundog"
+import {resolve} from "path"
 import {flow} from "panda-garden"
-import {first, include, fromJSON, toJSON, isString, microseconds, toUpper} from "panda-parchment"
+import {first, include, fromJSON, toJSON, isString, dashed, toLower} from "panda-parchment"
 import env from "./env"
 import logger from "./logger"
+import meter from "./meter"
 import Responses from "./responses"
 import {md5, hashCheck, toString} from "./cache"
 import {matchCORS} from "./cors"
 import {isCompressible, gzip} from "./compress"
 
-{invoke} = Sundog(SDK).AWS.Lambda()
+execute = meter "Execute", (context) ->
+  {handlers, match:{data:{resource}, method}} = context
+  logger.info resource, method
 
-execute = (context) ->
-  {partition} = context.match
+  unless f = handlers[dashed resource][toLower method]
+    throw new Responses.NotImplemented "no handler for #{resource} #{method}"
 
-  name = "#{env.name}-#{env.environment}-#{partition}"
-  logger.debug "Dispatching #{context.match.data.resource} #{toUpper context.match.method} to lambda '#{name}'"
-
-  start = microseconds()
-  {Payload} = await invoke name, context
-  logger.info "Dispatch Handler Duration: #{((microseconds() - start) / 1000).toFixed(2)}ms"
-
-  {response, handlerError} = fromJSON Payload
-  if handlerError
-    throw Responses.hydrate handlerError
-  else
-    context.response = response
-
-  context
+  await f context
 
 matchEncoding = (context) ->
   {mediatype} = context.match.signatures.response
