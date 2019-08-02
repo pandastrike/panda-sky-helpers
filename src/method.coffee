@@ -1,4 +1,5 @@
 import {toLower, toJSON, dashed, sleep} from "panda-parchment"
+import logger from "./logger"
 import Responses from "./responses"
 {NotImplemented} = Responses
 
@@ -12,7 +13,7 @@ methodDispatcher = (resources) ->
       return callback null, "Cuddle Monkey success"
 
     {match:{data:{resource}, method}} = context
-    console.log resource, method
+    logger.info resource, method
     unless f = resources[dashed resource]?[toLower method]
       context.handlerError = Responses.bundle new NotImplemented "no handler for #{method} #{resource}"
       return callback null, context
@@ -20,7 +21,7 @@ methodDispatcher = (resources) ->
     try
       callback null, await f context
     catch error
-      console.log error
+      logger.error error
       context.handlerError = Responses.bundle error
       callback null, context
 
