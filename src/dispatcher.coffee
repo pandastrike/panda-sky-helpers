@@ -1,5 +1,5 @@
 import {flow, wrap} from "panda-garden"
-import {fromJSON, toJSON, merge} from "panda-parchment"
+import {fromJSON, toJSON, merge, sleep} from "panda-parchment"
 import {read} from "panda-quill"
 import {Router} from "panda-router"
 
@@ -29,6 +29,12 @@ setup = (path, request) ->
 
 dispatcher = (path) ->
   (request, context, callback) ->
+    if request.cuddleMonkey?
+      time = 3000
+      logger.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
+      await sleep time
+      return callback null, "Cuddle Monkey success"
+
     new Promise (resolve, reject) ->
       (flow [setup, classify, dispatch]) path, request
       .then (response) ->

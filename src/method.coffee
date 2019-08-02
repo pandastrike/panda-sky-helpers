@@ -1,10 +1,16 @@
-import {toLower, toJSON, dashed} from "panda-parchment"
+import {toLower, toJSON, dashed, sleep} from "panda-parchment"
 import Responses from "./responses"
 {NotImplemented} = Responses
 
 methodDispatcher = (resources) ->
 
   (context, lambdaContext, callback) ->
+    if request.cuddleMonkey?
+      time = 3000
+      logger.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
+      await sleep time
+      return callback null, "Cuddle Monkey success"
+
     {match:{data:{resource}, method}} = context
     console.log resource, method
     unless f = resources[dashed resource]?[toLower method]
