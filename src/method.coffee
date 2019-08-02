@@ -5,7 +5,7 @@ import Responses from "./responses"
 methodDispatcher = (resources) ->
 
   (context, lambdaContext, callback) ->
-    if request.cuddleMonkey?
+    if context.cuddleMonkey?
       time = 3000
       logger.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
       await sleep time
