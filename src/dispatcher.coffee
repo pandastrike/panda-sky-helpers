@@ -1,5 +1,5 @@
 import {flow, wrap} from "panda-garden"
-import {toJSON, merge, sleep} from "panda-parchment"
+import {toJSON, merge, sleep, microseconds} from "panda-parchment"
 
 import log from "./logger"
 import meter from "./meter"
@@ -7,13 +7,14 @@ import classify from "./classify"
 import dispatch from "./dispatch"
 import {defaultCORS} from "./cors"
 
-setup = (request, router, handlers) ->
+setup = (start, request, router, handlers) ->
   response = headers: {}
-  {request, router, handlers, response}
+  {start, request, router, handlers, response}
 
 dispatcher = (bundle) ->
 
   (request, context, callback) ->
+    start = microseconds()
     if request.cuddleMonkey?
       time = 3000
       log.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
@@ -24,7 +25,7 @@ dispatcher = (bundle) ->
     [router, handlers] = await bundle
 
     new Promise (resolve, reject) ->
-      (meter "Dispatch", flow [setup, classify, dispatch]) request, router, handlers
+      (flow [setup, classify, dispatch]) start, request, router, handlers
       .then (response) ->
         resolve callback null, response
       .catch (error) ->

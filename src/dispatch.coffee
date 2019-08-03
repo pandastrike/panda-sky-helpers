@@ -1,15 +1,14 @@
 import {resolve} from "path"
 import {flow} from "panda-garden"
-import {first, include, fromJSON, toJSON, isString, dashed, toLower} from "panda-parchment"
+import {first, include, fromJSON, toJSON, isString, dashed, toLower, microseconds} from "panda-parchment"
 import env from "./env"
 import logger from "./logger"
-import meter from "./meter"
 import Responses from "./responses"
 import {md5, hashCheck, toString} from "./cache"
 import {matchCORS} from "./cors"
 import {isCompressible, gzip} from "./compress"
 
-execute = meter "Execute", (context) ->
+execute = (context) ->
   {handlers, match:{data:{resource}, method}} = context
   logger.info resource, method
 
@@ -89,6 +88,9 @@ stamp = flow [
 ]
 
 respond = (context) ->
+  log.info "#{resource} #{method} Dispatch",
+    ((microseconds() - context.start) / 1000).toFixed(2)
+
   {code, tag, headers, body, isBase64Encoded=false} = context.response
 
   statusCode: code
