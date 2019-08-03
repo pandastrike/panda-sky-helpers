@@ -2,7 +2,7 @@ import {resolve} from "path"
 import {flow} from "panda-garden"
 import {first, include, fromJSON, toJSON, isString, dashed, toLower, microseconds} from "panda-parchment"
 import env from "./env"
-import logger from "./logger"
+import log from "./logger"
 import Responses from "./responses"
 import {md5, hashCheck, toString} from "./cache"
 import {matchCORS} from "./cors"
@@ -10,7 +10,7 @@ import {isCompressible, gzip} from "./compress"
 
 execute = (context) ->
   {handlers, match:{data:{resource}, method}} = context
-  logger.info resource, method
+  log.info resource, method
 
   unless f = handlers[dashed resource][toLower method]
     throw new Responses.NotImplemented "no handler for #{resource} #{method}"
