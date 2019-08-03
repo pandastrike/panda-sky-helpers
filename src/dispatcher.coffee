@@ -14,13 +14,14 @@ setup = (request, router, handlers) ->
 dispatcher = (bundle) ->
 
   (request, context, callback) ->
-    [router, handlers] = await bundle
-
     if request.cuddleMonkey?
       time = 3000
       log.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
       await sleep time
+      [router, handlers] = await bundle
       return callback null, "Cuddle Monkey success"
+
+    [router, handlers] = await bundle
 
     new Promise (resolve, reject) ->
       (meter "Dispatch", flow [setup, classify, dispatch]) request, router, handlers
