@@ -57,7 +57,7 @@ dispatcher = (bundle) ->
               isBase64Encoded: false
 
     .catch (error) ->
-      log.error "failsafe handler", stack
+      log.error "failsafe handler", error.stack
       callback null,
         statusCode: 500
         statusDescription: "500 Internal Server Error"
