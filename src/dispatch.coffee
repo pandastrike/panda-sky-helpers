@@ -88,6 +88,7 @@ stamp = flow [
 ]
 
 respond = (context) ->
+  {match:{data:{resource}, method}} = context
   log.info "#{resource} #{method} Dispatch",
     ((microseconds() - context.start) / 1000).toFixed(2)
 
