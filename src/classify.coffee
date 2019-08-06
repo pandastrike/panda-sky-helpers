@@ -14,6 +14,9 @@ import responses from "./responses"
 ajv = new AJV()
 
 metrics = (context) ->
+  for p, value of context.request.queryStringParameters
+    context.request.queryStringParameters[p] = decodeURIComponent(value)
+
   log.debug toJSON
     path: context.request.path
     query: context.request.queryStringParameters
