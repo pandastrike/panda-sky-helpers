@@ -75,7 +75,13 @@ matchAccept = (context) ->
   # Negotiate content type by comparing client and our preferences.
   if preferences = signatures.response.mediatype
     header = headers.accept || "*/*"
-    acceptable = Accept.mediaType header, preferences
+
+    try
+      acceptable = Accept.mediaType header, preferences
+    catch e
+      log.warn e
+      throw new NotAcceptable "supported: #{toJSON preferences, true}"
+
     if isEmpty acceptable
       throw new NotAcceptable "supported: #{toJSON preferences, true}"
     else
@@ -84,7 +90,13 @@ matchAccept = (context) ->
   # Negotiate content encoding by comparing client and our preferences.
   if preferences = signatures.response.encoding
     header = headers["accept-encoding"] || ""
-    acceptable = Accept.encoding header, preferences
+
+    try
+      acceptable = Accept.encoding header, preferences
+    catch e
+      log.warn e
+      throw new NotAcceptable "supported: #{toJSON preferences, true}"
+
     if isEmpty acceptable
       throw new NotAcceptable "supported: #{toJSON preferences, true}"
     else
