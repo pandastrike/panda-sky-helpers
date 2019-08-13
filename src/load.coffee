@@ -5,7 +5,6 @@ import {fromJSON, toJSON, merge, sleep, microseconds} from "panda-parchment"
 import {read, ls, lsR} from "panda-quill"
 import {Router} from "panda-router"
 
-import log from "./logger"
 import meter from "./meter"
 
 buildRouter = (root) ->
@@ -21,7 +20,7 @@ buildRouter = (root) ->
         template: template
         methods: methods
 
-  log.info "Router Load Time": ((microseconds() - start)/1000).toFixed 2
+  console.log "routerLoad": (microseconds() - start) / 1000
 
   router
 
@@ -48,7 +47,7 @@ importHandlers = (root) ->
         ]
   ]
 
-  log.info "Handler Load Time": ((microseconds() - start)/1000).toFixed 2
+  console.log "handlerLoad": (microseconds() - start) / 1000
 
   handlers
 

@@ -1,8 +1,6 @@
 import {resolve} from "path"
 import {flow} from "panda-garden"
 import {first, include, fromJSON, toJSON, isString, dashed, toLower, microseconds} from "panda-parchment"
-import env from "./env"
-import log from "./logger"
 import Responses from "./responses"
 import {md5, hashCheck, toString} from "./cache"
 import {matchCORS} from "./cors"
@@ -10,7 +8,7 @@ import {isCompressible, gzip} from "./compress"
 
 execute = (context) ->
   {handlers, match:{data:{resource}, method}} = context
-  log.info resource, method
+  console.log resource, method
 
   unless f = handlers[dashed resource][toLower method]
     throw new Responses.NotImplemented "no handler for #{resource} #{method}"
@@ -89,8 +87,8 @@ stamp = flow [
 
 respond = (context) ->
   {match:{data:{resource}, method}} = context
-  log.info "#{resource} #{method} Dispatch",
-    ((microseconds() - context.start) / 1000).toFixed(2)
+  console.log "#{resource}#{method}Dispatch":
+    (microseconds() - context.start) / 1000
 
   {code, tag, headers, body, isBase64Encoded=false} = context.response
 

@@ -2,8 +2,6 @@
 import "source-map-support/register"
 import Sundog from "sundog"
 
-import env from "./env"
-import log from "./logger"
 import meter from "./meter"
 import responses from "./responses"
 import load from "./load"
@@ -15,8 +13,6 @@ import {timeCheck, hashCheck} from "./cache"
 aws = (sdk) -> Sundog(sdk).AWS
 
 sky = {
-  env
-  log
   meter
   aws
   responses
@@ -30,8 +26,6 @@ sky = {
 
 export default sky
 export {
-  env
-  log
   meter
   aws
   responses

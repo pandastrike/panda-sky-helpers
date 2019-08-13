@@ -6,7 +6,6 @@ import AJV from "ajv"
 import {parse as parseAuthorization} from "panda-auth-header"
 
 import {ungzip} from "./compress"
-import log from "./logger"
 import {defaultCORS} from "./cors"
 import responses from "./responses"
 {NoContent, BadRequest, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Unauthorized, UnsupportedMediaType} = responses
@@ -15,15 +14,16 @@ ajv = new AJV()
 
 metrics = (context) ->
 
-  log.debug toJSON
-    path: context.request.path
-    query: context.request.queryStringParameters
-    method: context.request.httpMethod
-    headers:
-      accept: context.request.headers.accept
-      "accept-encoding": context.request.headers["accept-encoding"]
-      "accept-language": context.request.headers["accept-language"]
-      "user-agent": context.request.headers["user-agent"]
+  console.log
+    raw:
+      path: context.request.path
+      query: context.request.queryStringParameters
+      method: context.request.httpMethod
+      headers:
+        accept: context.request.headers.accept
+        "accept-encoding": context.request.headers["accept-encoding"]
+        "accept-language": context.request.headers["accept-language"]
+        "user-agent": context.request.headers["user-agent"]
     true
 
   context
@@ -79,7 +79,7 @@ matchAccept = (context) ->
     try
       acceptable = Accept.mediaType header, preferences
     catch e
-      log.warn e
+      console.warn e
       throw new NotAcceptable "supported: #{toJSON preferences, true}"
 
     if isEmpty acceptable
@@ -94,7 +94,7 @@ matchAccept = (context) ->
     try
       acceptable = Accept.encoding header, preferences
     catch e
-      log.warn e
+      console.warn e
       throw new NotAcceptable "supported: #{toJSON preferences, true}"
 
     if isEmpty acceptable
@@ -129,7 +129,7 @@ matchContent = (context) ->
 
   if signatures.request.schema
     unless ajv.validate signatures.request.schema, body
-      log.warn toJSON ajv.errors, true
+      console.warn toJSON ajv.errors, true
       throw new BadRequest ajv.errors
 
   context.match.body = body
