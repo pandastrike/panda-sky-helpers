@@ -7,10 +7,13 @@ import {Router} from "panda-router"
 
 import meter from "./meter"
 
+readAPIDef = (root) ->
+  (fromJSON await read resolve root, "api", "json", "identity").resources
+
 buildRouter = (root) ->
   start = microseconds()
 
-  {resources} = fromJSON await read resolve root, "api", "json", "identity"
+  resources = await readAPIDef root
   router = new Router()
   for r, {template, methods} of resources
     router.add
@@ -52,10 +55,4 @@ importHandlers = (root) ->
   handlers
 
 
-load = (root) ->
-  Promise.all [
-    buildRouter root
-    importHandlers root
-  ]
-
-export default load
+export {readAPIDef, buildRouter, importHandlers}

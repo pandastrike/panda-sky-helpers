@@ -1,20 +1,11 @@
-import {flow, wrap} from "panda-garden"
+import {flow} from "panda-garden"
 import {toJSON, merge, sleep, microseconds} from "panda-parchment"
 
-import meter from "./meter"
-import classify from "./classify"
-import dispatch from "./dispatch"
-import {defaultCORS} from "./cors"
+import meter from "../utils/meter"
+import {defaultCORS} from "../utils/cors"
 
-setup = (start, request, router, handlers) ->
-  response = headers: {}
-  {start, request, router, handlers, response}
-
-go = flow [setup, classify, dispatch]
-
-dispatcher = (bundle) ->
-
-  (request, context, callback) ->
+dispatcher = (go) ->
+  (bundle) -> (request, context, callback) ->
     start = microseconds()
     if request.cuddleMonkey?
       time = 3000

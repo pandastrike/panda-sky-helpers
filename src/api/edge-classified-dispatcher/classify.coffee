@@ -5,9 +5,9 @@ import Accept from "@hapi/accept"
 import AJV from "ajv"
 import {parse as parseAuthorization} from "panda-auth-header"
 
-import {ungzip} from "./compress"
-import {defaultCORS} from "./cors"
-import responses from "./responses"
+import {ungzip} from "../../utils/compress"
+import {defaultCORS} from "../../utils/cors"
+import responses from "../../utils/responses"
 {NoContent, BadRequest, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Unauthorized, UnsupportedMediaType} = responses
 
 ajv = new AJV()
@@ -24,7 +24,6 @@ metrics = (context) ->
         "accept-encoding": context.request.headers["accept-encoding"]
         "accept-language": context.request.headers["accept-language"]
         "user-agent": context.request.headers["user-agent"]
-    true
 
   context
 

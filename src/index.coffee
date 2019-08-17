@@ -1,38 +1,29 @@
-# Before we get started, first install source mapping support.
 import "source-map-support/register"
 import Sundog from "sundog"
 
-import meter from "./meter"
-import responses from "./responses"
-import load from "./load"
-import dispatcher from "./dispatcher"
-import classify from "./classify"
-import dispatch from "./dispatch"
-import {timeCheck, hashCheck} from "./cache"
+import meter from "./utils/meter"
+import responses from "./utils/responses"
+import {checks} from "./utils/cache"
+import api from "./api"
+import edge from "./edge"
 
 aws = (sdk) -> Sundog(sdk).AWS
 
 sky = {
-  meter
   aws
+  meter
   responses
-  load
-  dispatcher
-  classify
-  dispatch
-  timeCheck
-  hashCheck
+  checks
+  api
+  edge
 }
 
 export default sky
 export {
-  meter
   aws
+  meter
   responses
-  load
-  dispatcher
-  classify
-  dispatch
-  timeCheck
-  hashCheck
+  checks
+  api
+  edge
 }

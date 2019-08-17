@@ -1,10 +1,10 @@
 import {resolve} from "path"
 import {flow} from "panda-garden"
 import {first, include, fromJSON, toJSON, isString, dashed, toLower, microseconds} from "panda-parchment"
-import Responses from "./responses"
-import {md5, hashCheck, toString} from "./cache"
-import {matchCORS} from "./cors"
-import {isCompressible, gzip} from "./compress"
+import Responses from "../utils/responses"
+import {md5, hashCheck, toString} from "../utils/cache"
+import {matchCORS} from "../utils/cors"
+import {isCompressible, gzip} from "../utils/compress"
 
 execute = (context) ->
   {handlers, match:{data:{resource}, method}} = context

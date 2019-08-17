@@ -41,4 +41,8 @@ hashCheck = (match, content) ->
   else
     current
 
-export {md5, toString, timeCheck, hashCheck}
+checks =
+  time: timeCheck
+  hash: hashCheck
+
+export {md5, toString, timeCheck, hashCheck, checks}
