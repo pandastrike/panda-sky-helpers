@@ -38,7 +38,7 @@ importHandlers = (root) ->
           -> path
           (path) ->
             path: relative handlersPath, path
-            handler: require(path).default
+            handler: (await require path).default
           ({path, handler}) ->
             resource = dirname path
             method = basename path, ".js"

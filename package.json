@@ -1,6 +1,6 @@
 {
   "name": "panda-sky-helpers",
-  "version": "5.0.21",
+  "version": "6.0.0",
   "description": "A lightweight library to make authoring serverless, Panda Sky powered APIs easier.",
   "main": "build/npm/src/index.js",
   "files": [
@@ -40,22 +40,22 @@
     "url": "https://github.com/pandastrike/panda-sky-helpers/issues"
   },
   "homepage": "https://github.com/pandastrike/panda-sky-helpers#readme",
-  "devDependencies": {
-    "panda-9000": "^4.4.0",
-    "panda-builder": "^3.2.1"
-  },
   "dependencies": {
-    "@hapi/accept": "^3.2.2",
-    "ajv": "^6.6.1",
+    "@hapi/accept": "^3.2.3",
+    "ajv": "^6.10.2",
     "panda-auth-header": "0.0.1",
-    "panda-garden": "^3.5.0",
-    "panda-parchment": "^4.2.1",
-    "panda-quill": "^3.4.5",
-    "panda-river": "^4.4.2",
-    "panda-router": "^1.4.2",
-    "panda-serialize": "^0.7.0",
-    "source-map-support": "^0.5.0",
+    "panda-garden": "^4.0.0",
+    "panda-parchment": "^5.0.0",
+    "panda-quill": "^4.0.0",
+    "panda-river": "^5.0.0",
+    "panda-router": "^2.0.0",
+    "panda-serialize": "^1.0.0",
+    "source-map-support": "^0.5.13",
     "standard-error": "1.1.0",
-    "sundog": "^5.0.1"
+    "sundog": "^6.0.2"
+  },
+  "devDependencies": {
+    "panda-9000": "^5.0.0",
+    "panda-builder": "^4.0.0"
   }
 }
