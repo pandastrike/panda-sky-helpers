@@ -52,10 +52,6 @@ importHandlers = (root) ->
   handlers
 
 
-load = (root) ->
-  Promise.all [
-    buildRouter root
-    importHandlers root
-  ]
+load = (root) -> buildRouter root
 
 export default load
