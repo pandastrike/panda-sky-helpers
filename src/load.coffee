@@ -26,7 +26,7 @@ import meter from "./meter"
 
 buildRouter = (resources) ->
   router = new Router()
-  for r, {template, methods} of resources
+  for r, {template, methods} of fromJSON resources
     router.add
       template: template
       data:
