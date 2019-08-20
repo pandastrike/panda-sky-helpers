@@ -24,7 +24,6 @@ metrics = (context) ->
         "accept-encoding": context.request.headers["accept-encoding"]
         "accept-language": context.request.headers["accept-language"]
         "user-agent": context.request.headers["user-agent"]
-    true
 
   context
 
