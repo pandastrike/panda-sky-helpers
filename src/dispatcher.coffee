@@ -25,6 +25,9 @@ dispatcher = (bundle) ->
 
     [router, handlers] = await bundle
 
+    # We must wait until dependencies are loaded before registering source maps
+    require "source-map-support/register"
+
     try
       callback null, await go start, request, router, handlers
     catch error

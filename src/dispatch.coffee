@@ -10,7 +10,6 @@ execute = (context) ->
   {handlers, match:{data:{resource}, method}} = context
   console.log resource, method
 
-  require "source-map-support/register"
   unless f = handlers[dashed resource][toLower method]
     throw new Responses.NotImplemented "no handler for #{resource} #{method}"
 
