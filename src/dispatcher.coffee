@@ -12,12 +12,11 @@ setup = (start, request, router, handlers) ->
 
 go = flow [setup, classify, dispatch]
 
-dispatcher = (bundle) ->
+dispatcher = (bundle, time=3000) ->
 
   (request, context, callback) ->
     start = microseconds()
     if request.cuddleMonkey?
-      time = 3000
       console.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
       await sleep time
       await bundle
