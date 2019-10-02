@@ -7,7 +7,7 @@ import {Router} from "panda-router"
 import meter from "./meter"
 
 buildRouter = (resources) ->
-  router = new Router()
+  router = Router.create()
   for r, {template, methods} of resources
     router.add
       template: template

@@ -64,8 +64,8 @@ matchMethod = (context) ->
   unless (def = data.methods[toLower method])?
     throw new MethodNotAllowed()
   else
-    {signatures, partition} = def
-    include context.match, {signatures, partition}
+    {signatures, hints} = def
+    include context.match, {signatures, hints}
     context
 
 matchAccept = (context) ->
@@ -135,17 +135,17 @@ matchContent = (context) ->
   context
 
 matchAuthorization = (context) ->
-  {headers, signatures} = context.match
+  {headers, signatures, hints} = context.match
+
+  if hints? && ("edge authorization" in hints)
+    return context
 
   if allowedScheme = context.match.signatures.request.authorization
     unless header = headers.authorization
       throw new Unauthorized "authorization header required"
     else
       {scheme, params, token} = parseAuthorization header
-      if token
-        include context.match, authorization: {scheme, token}
-      else
-        include context.match, authorization: {scheme, params}
+      include context.match, authorization: {scheme, token, params}
 
   context
 

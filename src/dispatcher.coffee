@@ -15,19 +15,19 @@ go = flow [setup, classify, dispatch]
 dispatcher = (bundle, time=3000) ->
 
   (request, context, callback) ->
-    start = microseconds()
-    if request.cuddleMonkey?
-      console.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
-      await sleep time
-      await bundle
-      return callback null, "Cuddle Monkey success"
-
-    [router, handlers] = await bundle
-
-    # We must wait until dependencies are loaded before registering source maps
-    require "source-map-support/register"
-
     try
+      start = microseconds()
+      if request.cuddleMonkey?
+        console.debug "Cuddle Monkey Preheater Invocation: #{time}ms"
+        await sleep time
+        await bundle
+        return callback null, "Cuddle Monkey success"
+
+      [router, handlers] = await bundle
+
+      # Wait until dependencies are loaded before registering source maps
+      require "source-map-support/register"
+
       callback null, await go start, request, router, handlers
     catch error
       {stack, code, tag, body="", headers={}} = error
