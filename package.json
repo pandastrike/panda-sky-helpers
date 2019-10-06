@@ -1,6 +1,6 @@
 {
   "name": "panda-sky-helpers",
-  "version": "6.0.9",
+  "version": "6.0.10",
   "description": "A lightweight library to make authoring serverless, Panda Sky powered APIs easier.",
   "main": "build/npm/src/index.js",
   "files": [
@@ -47,7 +47,7 @@
     "panda-garden": "^4.0.0",
     "panda-parchment": "^5.0.0",
     "panda-river": "^5.0.0",
-    "panda-router": "^2.0.1",
+    "panda-router": "^2.1.0",
     "panda-serialize": "^1.0.0",
     "source-map-support": "^0.5.13",
     "standard-error": "1.1.0"
