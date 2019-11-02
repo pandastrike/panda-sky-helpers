@@ -4,6 +4,7 @@ import {yaml} from "panda-serialize"
 import Accept from "@hapi/accept"
 import AJV from "ajv"
 import {parse as parseAuthorization} from "panda-auth-header"
+import {confidential} from "panda-confidential"
 
 import {ungzip} from "./compress"
 import {defaultCORS} from "./cors"
@@ -11,6 +12,7 @@ import responses from "./responses"
 {NoContent, BadRequest, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Unauthorized, UnsupportedMediaType} = responses
 
 ajv = new AJV()
+{Declaration} = confidential()
 
 metrics = (context) ->
 
@@ -108,6 +110,21 @@ matchContent = (context) ->
   {body} = context.request
   type = headers["content-type"]
   encoding = headers["content-encoding"]
+
+  if signatures.request.signed
+    try
+      declaration = Declaration.from "base64", body
+      result = verify declaration
+    catch e
+      console.warn e
+      throw new BadRequest "signed body failed verification"
+
+    if result
+      body = declaration.message
+    else
+      throw new BadRequest "signed body failed verification"
+
+
 
   allowed = signatures.request.mediatype
   if allowed && (type not in allowed)
