@@ -1,6 +1,7 @@
 import {flow} from "panda-garden"
 import {include, toLower, toUpper, toJSON, fromJSON, isEmpty, merge, keys} from "panda-parchment"
 import {yaml} from "panda-serialize"
+import Template from "url-template"
 import Accept from "@hapi/accept"
 import AJV from "ajv"
 import {parse as parseAuthorization} from "panda-auth-header"
@@ -12,7 +13,7 @@ import responses from "./responses"
 {NoContent, BadRequest, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Unauthorized, UnsupportedMediaType} = responses
 
 ajv = new AJV()
-{Declaration} = confidential()
+{Declaration, verify} = confidential()
 
 metrics = (context) ->
 
@@ -48,6 +49,9 @@ matchURL = (context) ->
   unless (route = context.router.match context.match.url)?
     throw new NotFound()
   else
+    # To make sure qs ordering is consistent, use template to remake the URL.
+    template = Template.parse route.data.template
+    context.match.url = template.expand route.bindings
     include context.match, route
     context
 
@@ -113,14 +117,15 @@ matchContent = (context) ->
 
   if signatures.request.signed
     try
-      declaration = Declaration.from "base64", body
+      declaration = Declaration.from "base64", fromJSON body
       result = verify declaration
     catch e
       console.warn e
       throw new BadRequest "signed body failed verification"
 
     if result
-      body = declaration.message
+      context.match.declaration = declaration
+      body = declaration.message.to "utf8"
     else
       throw new BadRequest "signed body failed verification"
 

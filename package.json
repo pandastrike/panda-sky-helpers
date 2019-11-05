@@ -51,7 +51,8 @@
     "panda-router": "^2.1.0",
     "panda-serialize": "^1.0.0",
     "source-map-support": "^0.5.13",
-    "standard-error": "1.1.0"
+    "standard-error": "1.1.0",
+    "url-template": "^2.0.8"
   },
   "devDependencies": {
     "panda-9000": "^5.0.0",
