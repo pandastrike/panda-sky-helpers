@@ -166,7 +166,11 @@ matchAuthorization = (context) ->
     unless header = headers.authorization
       throw new Unauthorized "authorization header required"
     else
-      {scheme, params, token} = parseAuthorization header
+      try
+        {scheme, params, token} = parseAuthorization header
+      catch e
+        console.warn e
+        throw new Unauthorized "invalid authorization header format"
       include context.match, authorization: {scheme, token, params}
 
   context
