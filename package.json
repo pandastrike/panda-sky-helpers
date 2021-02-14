@@ -42,7 +42,7 @@
   "homepage": "https://github.com/pandastrike/panda-sky-helpers#readme",
   "dependencies": {
     "@hapi/accept": "^3.2.4",
-    "@pandastrike/router": "3.0.1",
+    "@pandastrike/router": "3.0.2",
     "ajv": "^6.10.2",
     "panda-auth-header": "0.0.1",
     "panda-confidential": "^3.0.0",
