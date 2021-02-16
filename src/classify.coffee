@@ -3,6 +3,7 @@ import {include, toLower, toUpper, toJSON, fromJSON, isEmpty, merge, keys} from 
 import {yaml} from "panda-serialize"
 import Template from "url-template"
 import Accept from "@hapi/accept"
+import Content from "@hapi/content"
 import AJV from "ajv"
 import {parse as parseAuthorization} from "panda-auth-header"
 import {confidential} from "panda-confidential"
@@ -24,6 +25,7 @@ metrics = (context) ->
       method: context.request.httpMethod
       headers:
         accept: context.request.headers.accept
+        "content-type": context.request.headers["content-type"]
         "accept-encoding": context.request.headers["accept-encoding"]
         "accept-language": context.request.headers["accept-language"]
         "user-agent": context.request.headers["user-agent"]
@@ -112,48 +114,52 @@ matchAccept = (context) ->
 matchContent = (context) ->
   {headers, signatures} = context.match
   {body} = context.request
-  type = headers["content-type"]
-  encoding = headers["content-encoding"]
 
-  if signatures.request.signed
-    try
-      declaration = Declaration.from "base64", fromJSON body
-      result = verify declaration
-    catch e
-      console.warn e
-      throw new BadRequest "signed body failed verification"
+  if !isEmpty body
+    if !headers["content-type"]?
+      throw new UnsupportedMediaType "request contains a non-empty body, but no content-type header is specified."
 
-    if result
-      context.match.declaration = declaration
-      body = declaration.message.to "utf8"
-    else
-      throw new BadRequest "signed body failed verification"
+    type = Content.type headers["content-type"]
+    encoding = headers["content-encoding"]
+
+    if signatures.request.signed
+      try
+        declaration = Declaration.from "base64", fromJSON body
+        result = verify declaration
+      catch e
+        console.warn e
+        throw new BadRequest "signed body failed verification"
+
+      if result
+        context.match.declaration = declaration
+        body = declaration.message.to "utf8"
+      else
+        throw new BadRequest "signed body failed verification"
 
 
 
-  allowed = signatures.request.mediatype
-  if allowed && (type not in allowed)
-    throw new UnsupportedMediaType "supported response types: #{toJSON allowed}"
+    allowed = signatures.request.mediatype
+    if allowed && (type.mime not in allowed)
+      throw new UnsupportedMediaType "supported response types: #{toJSON allowed}"
 
-  switch encoding
-    when undefined, "identity" then break
-    when "gzip" then body = await ungzip body
-    else
-      throw new UnsupportedMediaType "no support for request content encoding #{encoding}"
+    # TODO: We need a more robust parsing library for encoding types.
+    switch encoding
+      when undefined, "identity" then break
+      when "gzip" then body = await ungzip body
+      else
+        throw new UnsupportedMediaType "no support for request content encoding #{encoding}"
 
-  switch type
-    when undefined
-      unless isEmpty body
-        throw new UnsupportedMediaType "request contains a non-empty body, but no content-type header"
-    when "application/json" then body = fromJSON body
-    when "text/yaml" then body = yaml body
+    switch type.mime
+      when "application/json" then body = fromJSON body
+      when "text/yaml" then body = yaml body
 
-  if signatures.request.schema
-    unless ajv.validate signatures.request.schema, body
-      console.warn toJSON ajv.errors, true
-      throw new BadRequest ajv.errors
+    if signatures.request.schema
+      unless ajv.validate signatures.request.schema, body
+        console.warn toJSON ajv.errors, true
+        throw new BadRequest ajv.errors
 
-  context.match.body = body
+    context.match.body = body
+
   context
 
 matchAuthorization = (context) ->
