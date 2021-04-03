@@ -79,6 +79,10 @@ matchMethod = (context) ->
 matchAccept = (context) ->
   {signatures, headers} = context.match
 
+  # Wildcard shortcurcuit.
+  if signatures.response.mediatype? && "*" in signatures.response.mediatype
+    return context
+
   # Negotiate content type by comparing client and our preferences.
   if preferences = signatures.response.mediatype
     header = headers.accept || "*/*"
@@ -114,6 +118,10 @@ matchAccept = (context) ->
 matchContent = (context) ->
   {headers, signatures} = context.match
   {body} = context.request
+
+  # Wildcard shortcircuit.
+  if signatures.request.mediatype? && "*" in signatures.request.mediatype
+    return context
 
   if !isEmpty body
     if !headers["content-type"]?
